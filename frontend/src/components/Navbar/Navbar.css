@@ -5,8 +5,30 @@
     padding: 20px 0;
 }
 
+.navbar-logo-container{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+}
+
 .navbar .logo{
-    width: 150px;
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.logo-text{
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.navbar-logo-container:hover .logo-text{
+    color: #ff5722;
 }
 
 .navbar-menu{
@@ -21,6 +43,26 @@
     display: flex;
     gap: 30px;
     align-items: center;
+}
+
+.navbar-right img{
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.navbar-right img:hover{
+    opacity: 0.7;
+}
+
+.navbar-search-icon{
+    position: relative;
+}
+
+.navbar-search-icon img{
+    width: 24px;
+    height: 24px;
 }
 
 .navbar button{

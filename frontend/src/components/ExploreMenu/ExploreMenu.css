@@ -24,3 +24,48 @@
     font-size: max(1.2vw, 14px);
     cursor: pointer;
 }
+
+@media (max-width: 1024px) {
+    .explore-menu-list {
+        gap: 20px;
+        margin: 16px 0px;
+    }
+    .explore-menu h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .explore-menu-list {
+        gap: 12px;
+        margin: 10px 0px;
+    }
+    .explore-menu h1 {
+        font-size: 1.3rem;
+    }
+    .explore-menu-list p {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .explore-menu {
+        gap: 10px;
+    }
+    .explore-menu h1 {
+        font-size: 1rem;
+        text-align: left;
+    }
+    .explore-menu-list {
+        gap: 7px;
+        margin: 8px 0px;
+        padding-bottom: 4px;
+    }
+    .explore-menu-list-item img {
+        width: 38px;
+        height: 38px;
+    }
+    .explore-menu-list p {
+        font-size: 10px;
+    }
+}

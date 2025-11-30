@@ -157,7 +157,77 @@
   margin: 0;
 }
 
-/* Responsive Design */
+@media (max-width: 1024px) {
+  .footer-container {
+    padding: 0 32px;
+  }
+  .footer-content {
+    gap: 36px;
+  }
+  .footer-heading {
+    font-size: 1.2rem;
+  }
+  .footer-description {
+    font-size: 1rem;
+  }
+  .footer-contact li {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 32px 0 14px;
+  }
+
+  .footer-container {
+    padding: 0 12px;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .footer-heading {
+    font-size: 1.08rem;
+    margin-bottom: 10px;
+  }
+  .footer-description {
+    font-size: 0.95rem;
+  }
+  .footer-contact li {
+    font-size: 12px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 22px 0 8px;
+  }
+
+  .footer-container {
+    padding: 0 4px;
+  }
+
+  .footer-content {
+    gap: 10px;
+  }
+  .footer-heading {
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+  .footer-description {
+    font-size: 0.92rem;
+  }
+  .footer-contact li {
+    font-size: 11px;
+    gap: 6px;
+  }
+}
+
+
 @media (max-width: 1024px) {
   .footer-content {
     grid-template-columns: repeat(2, 1fr);

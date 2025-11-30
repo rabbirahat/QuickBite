@@ -1,10 +1,17 @@
 .header{
     height: 34vw;
     margin: 30px auto;
+    max-width: 1200px;
     background:url('/header_img.png') no-repeat;
     background-size: contain;
+    background-position: center;
     padding: 10px;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    overflow: hidden;
 }
 .header-contents{
     position: absolute;
@@ -35,4 +42,71 @@
     font-size: 1vw;
     border-radius: 40px;
     cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    .header {
+        height: 44vw;
+        margin: 20px 10px;
+        background-size: cover;
+        border-radius: 8px;
+    }
+    .header-contents {
+        left: 28px;
+        gap: 12px;
+    }
+    .header-contents h2 {
+        font-size: max(20px, 3vw);
+    }
+    .header-contents p,
+    .header-contents button {
+        font-size: 1.3vw;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .header {
+        height: 58vw;
+        padding: 8px;
+        margin: 20px 8px;
+        border-radius: 6px;
+    }
+    .header-contents {
+        left: 16px;
+        bottom: 12px;
+        gap: 10px;
+    }
+    .header-contents h2 {
+        font-size: 22px;
+    }
+    .header-contents p,
+    .header-contents button {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        height: 240px;
+        margin: 12px 4px;
+        background-position: center;
+        border-radius: 4px;
+    }
+    .header-contents {
+        left: 8px;
+        bottom: 8px;
+        gap: 8px;
+    }
+    .header-contents h2 {
+        font-size: 17px;
+    }
+    .header-contents p,
+    .header-contents button {
+        font-size: 11px;
+    }
+    .header-contents button {
+        padding: 7px 14px;
+        border-radius: 20px;
+    }
 }

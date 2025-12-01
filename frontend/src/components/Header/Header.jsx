@@ -1,12 +1,20 @@
 import React from 'react'
 import './Header.css'
+import { assets } from '../../assets/assets'
 const Header = () => {
+  const scrollToExplore = () => {
+    const exploreSection = document.getElementById('explore-menu');
+    if (exploreSection) {
+      exploreSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className='header'>
+    <div className='header' style={{backgroundImage: `url(${assets.header_img})`}}>
       <div className="header-contents">
         <h2>Welcome to QuickBite</h2>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Deserunt voluptates consectetur fugit, dolorum veniam dolorem!</p>
-        <button>View Menu</button>
+        <p>Delicious Food Delivered to Your Door</p>
+        <button onClick={scrollToExplore}>View Menu</button>
       </div>
     </div>
   )

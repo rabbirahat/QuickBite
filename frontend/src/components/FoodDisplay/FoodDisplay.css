@@ -13,6 +13,34 @@
     font-size: max(24px, 2.5vw);
     font-weight: 500;
 }
+.food-display-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+.food-display-filters{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+.food-display-filters label{
+    color: #555;
+}
+.food-display-filters select{
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+}
+.food-display-filters select:focus{
+    outline: none;
+    border-color: #ff4c24;
+    box-shadow: 0 0 0 1px rgba(255, 76, 36, 0.15);
+}
 .food-display-list{
     display: grid;
     grid-template-columns: repeat(4, 1fr);

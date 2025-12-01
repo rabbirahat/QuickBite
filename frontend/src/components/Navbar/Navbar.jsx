@@ -44,7 +44,7 @@ const Navbar = () => {
       <div className='navbar-right'>
         <img src={assets.search_icon} alt="" />
         <div className='navbar-search-icon'>
-          <img src={assets.shopping_cart_icon} alt="Shopping Cart" />
+          <Link to='/cart'><img src={assets.shopping_cart_icon} alt="Shopping Cart" /></Link>
           <div className="dot"></div>
         </div>
         <Link to="/login">

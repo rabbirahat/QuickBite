@@ -10,7 +10,7 @@
   gap: 8px;
   margin-bottom: 30px;
   padding: 10px 15px;
-  border: 1px solid #ddd;
+  border: 1px solid #ff5722;
   border-radius: 8px;
   background: none;
   color: #4b5563;
@@ -20,7 +20,7 @@
 }
 
 .cart-back-button:hover {
-  color: #111827;
+  color: #ca3500;
 }
 
 .cart-back-icon {
@@ -117,6 +117,12 @@
   gap: 16px;
   padding: 16px 20px;
   border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cart-item-row:hover {
+  background-color: #f9fafb;
 }
 
 .cart-item-row:last-child {

@@ -58,7 +58,12 @@ const Cart = () => {
         <div className="cart-items-panel">
           <div className="cart-items-card">
             {cartList.map((item) => (
-              <div className="cart-item-row" key={item.id}>
+              <div 
+                className="cart-item-row" 
+                key={item.id}
+                onClick={() => navigate(`/food/${item.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <img src={item.image} alt={item.name} className="cart-item-image" />
 
                 <div className="cart-item-main">
@@ -67,7 +72,10 @@ const Cart = () => {
                   <div className="cart-item-qty-controls">
                     <button
                       className="cart-qty-button"
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeFromCart(item.id)
+                      }}
                       disabled={item.quantity <= 1}
                     >
                       −
@@ -75,7 +83,10 @@ const Cart = () => {
                     <span className="cart-qty-value">{item.quantity}</span>
                     <button
                       className="cart-qty-button"
-                      onClick={() => addToCart(item.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        addToCart(item.id)
+                      }}
                       title="Increase quantity"
                     >
                       +
@@ -86,10 +97,11 @@ const Cart = () => {
                 <div className="cart-item-meta">
                   <button
                     className="cart-remove-button"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
                       // Remove all quantity for this item
                       for (let i = 0; i < item.quantity; i++) {
-                        removeFromCart(item.id);
+                        removeFromCart(item.id)
                       }
                     }}
                   >

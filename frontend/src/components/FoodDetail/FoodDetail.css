@@ -19,7 +19,7 @@
   gap: 8px;
   padding: 10px 15px;
   background-color: white;
-  border: 1px solid #ddd;
+  border: 1px solid #ff5722;
   border-radius: 8px;
   font-size: 14px;
   color: #4b5563;
@@ -29,7 +29,7 @@
 }
 
 .back-button:hover {
-  color: #111827;
+  color: #ca3500;
 }
 
 .product-detail-content {

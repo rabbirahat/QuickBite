@@ -1,14 +1,20 @@
 import React, { useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './FoodItem.css'
 import { assets } from '../../assets/assets'
 import { StoreContext } from '../../context/StoreContext'
 
 const FoodItem = ({ id, name, price, description, image }) => {
 
+  const navigate = useNavigate()
   const {cartItems, addToCart, removeFromCart} = useContext(StoreContext)
 
+  const handleViewDetails = () => {
+    navigate(`/food/${id}`)
+  }
+
   return (
-    <div className='food-item'>
+    <div className='food-item' onClick={handleViewDetails}>
       <div className="food-item-img-container">
         <img src={image} alt="" className="food-item-image" />
 

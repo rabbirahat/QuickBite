@@ -8,6 +8,7 @@ import Footer from './components/Footer/Footer'
 import { LoginPage } from './pages/Login/LoginPage'
 import { SignupPage } from './pages/Signup/SignupPage'
 import ForgotPasswordPage from './pages/Login/ForgotPasswordPage'
+import FoodDetail from './components/FoodDetail/FoodDetail'
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
           <Route path='/login' element={<LoginPage />} />
           <Route path='/forgot-password' element={<ForgotPasswordPage />} />
           <Route path='/signup' element={<SignupPage />} />
+          <Route path='/food/:id' element={<FoodDetail />} />
         </Routes>
       </div>
       <Footer />

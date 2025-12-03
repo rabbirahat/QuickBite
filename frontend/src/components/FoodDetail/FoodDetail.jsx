@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { StoreContext } from '../../context/StoreContext'
 import { assets } from '../../assets/assets'
@@ -7,7 +7,7 @@ import './FoodDetail.css'
 const FoodDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { food_list, addToCart } = useContext(StoreContext)
+  const { food_list, addToCart, removeFromCart, cartItems, setItemQuantity } = useContext(StoreContext)
   const [quantity, setQuantity] = useState(1)
   const [showSuccess, setShowSuccess] = useState(false)
 
@@ -23,20 +23,31 @@ const FoodDetail = () => {
   }
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addToCart(food._id)
-    }
+    // Set the cart quantity for this item to the selected `quantity`.
+    setItemQuantity(food._id, quantity)
     setShowSuccess(true)
     setTimeout(() => setShowSuccess(false), 2000)
   }
 
+  // Sync local `quantity` with cartItems so quantity set from the list view
+  // shows up here when opening the details page.
+  useEffect(() => {
+    if (!food) return
+    const current = cartItems?.[food._id]
+    if (typeof current === 'number' && current > 0) setQuantity(current)
+    else setQuantity(1)
+  }, [cartItems, food])
+
   const handleIncreaseQuantity = () => {
-    setQuantity(quantity + 1)
+    const current = cartItems?.[food._id] || 0
+    setItemQuantity(food._id, current + 1)
   }
 
   const handleDecreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1)
+    const current = cartItems?.[food._id] || 0
+    // keep minimum shown quantity as 1 in UI; if you want allow 0, change this
+    if (current > 1) {
+      setItemQuantity(food._id, current - 1)
     }
   }
 

@@ -6,6 +6,7 @@ export const StoreContext = createContext(null);
 const StoreContextProvider = (props) => {
 
     const [cartItems, setCartItems] = useState({});
+    const [reviews, setReviews] = useState({});
 
     const addToCart = (itemId) => {
         if (!cartItems[itemId]) {
@@ -40,6 +41,34 @@ const StoreContextProvider = (props) => {
         return totalAmount;
     }
 
+    // Review functions
+    const addReview = (foodId, review) => {
+        setReviews((prev) => {
+            const existingReviews = prev[foodId] || [];
+            return {
+                ...prev,
+                [foodId]: [...existingReviews, review]
+            };
+        });
+    }
+
+    const getReviewsForFood = (foodId) => {
+        return reviews[foodId] || [];
+    }
+
+    // Load reviews from localStorage on mount
+    useEffect(() => {
+        const savedReviews = localStorage.getItem('foodReviews');
+        if (savedReviews) {
+            setReviews(JSON.parse(savedReviews));
+        }
+    }, []);
+
+    // Save reviews to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem('foodReviews', JSON.stringify(reviews));
+    }, [reviews]);
+
     const contextValue = {
         food_list,
         cartItems,
@@ -47,7 +76,9 @@ const StoreContextProvider = (props) => {
         addToCart,
         removeFromCart,
         setItemQuantity,
-        getTotalCartAmount
+        getTotalCartAmount,
+        addReview,
+        getReviewsForFood
     }
 
     return (

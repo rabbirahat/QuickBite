@@ -21,6 +21,7 @@
 
 .cart-back-button:hover {
   color: #ca3500;
+  background-color: #fff5f0;
 }
 
 .cart-back-icon {
@@ -326,8 +327,8 @@
 .cart-summary-button {
   width: 100%;
   border: none;
-  border-radius: 999px;
-  background-color: #ea580c;
+  border-radius: 8px;
+  background-color: #ff5722;
   color: #ffffff;
   font-weight: 500;
   font-size: 14px;
@@ -337,7 +338,7 @@
 }
 
 .cart-summary-button:hover {
-  background-color: #c2410c;
+  background-color: #ca3500;
   transform: translateY(-1px);
 }
 

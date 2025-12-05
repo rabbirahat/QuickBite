@@ -48,8 +48,8 @@
     font-weight: 500;
     font-size: 1vw;
     cursor: pointer;
-    animation: popUp 1.2s infinite;
-    transition: all 0.3s ease;
+    animation: popUp 1.8s infinite;
+    transition: all 0.2s ease;
 }
 
 .header-contents button:hover{

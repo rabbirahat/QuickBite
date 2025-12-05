@@ -2,6 +2,9 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 10px;
 }
 .explore-menu h1{
     font-weight: 500;
@@ -53,6 +56,9 @@
 }
 
 @media (max-width: 768px) {
+    .explore-menu {
+        margin: 20px 8px;
+    }
     .explore-menu-list {
         gap: 12px;
         margin: 10px 0px;
@@ -68,6 +74,7 @@
 @media (max-width: 480px) {
     .explore-menu {
         gap: 10px;
+        margin: 12px 4px;
     }
     .explore-menu h1 {
         font-size: 1rem;

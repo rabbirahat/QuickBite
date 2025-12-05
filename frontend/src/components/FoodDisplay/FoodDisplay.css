@@ -1,13 +1,7 @@
 .food-display{
-    /* display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
-    margin: 10px;
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 10px;
 }
 .food-display h2{
     font-size: max(24px, 2.5vw);
@@ -55,12 +49,18 @@
 }
 
 @media (max-width: 768px) {
+    .food-display {
+        margin: 20px 8px;
+    }
     .food-display-list{
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 480px) {
+    .food-display {
+        margin: 12px 4px;
+    }
     .food-display-list{
         grid-template-columns: repeat(1, 1fr);
     }

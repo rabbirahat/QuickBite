@@ -32,13 +32,13 @@ const Navbar = () => {
   return (
     <div className='navbar'>
       <Link to="/" className="navbar-logo-container" onClick={() => setMenu("Home")}>
-        <img src={assets.logo} alt="QuickBite Logo" className="logo" />
+        {/* <img src={assets.logo} alt="QuickBite Logo" className="logo" /> */}
         <span className="logo-text">QuickBite</span>
       </Link>
       <ul className="navbar-menu">
         <Link to='/' onClick={()=>setMenu("Home")} className={menu==="Home"?"active":""}>Home</Link>
         <a href='#explore-menu' onClick={(e) => handleSectionClick(e, 'explore-menu')} className={menu==="Menu"?"active":""}>Menu</a>
-        <a href='#app-download' onClick={(e) => handleSectionClick(e, 'app-download')} className={menu==="Mobile App"?"active":""}>Mobile App</a>
+        {/* <a href='#app-download' onClick={(e) => handleSectionClick(e, 'app-download')} className={menu==="Mobile App"?"active":""}>Mobile App</a> */}
         <a href='#footer' onClick={(e) => handleSectionClick(e, 'footer')} className={menu==="Contact Us"?"active":""}>Contact Us</a>
       </ul>
       <div className='navbar-right'>

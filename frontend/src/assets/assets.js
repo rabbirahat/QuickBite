@@ -40,6 +40,9 @@ import food_22 from './Cake/food_22.png'
 import food_23 from './Cake/food_23.png'
 import food_24 from './Cake/food_24.png'
 
+import add_icon_white from './add_icon_white.png'
+import remove_icon_red from './remove_icon_red.png'
+import add_icon_green from './add_icon_green.png'
 import app_store from './app_store.png'
 import play_store from './play_store.png'
 import linkedin_icon from './linkedin_icon.png'
@@ -55,6 +58,9 @@ export const assets = {
     shopping_cart_icon,
     header_img,
     search_icon,
+    add_icon_white,
+    remove_icon_red,
+    add_icon_green,
     app_store,
     play_store,
     linkedin_icon,

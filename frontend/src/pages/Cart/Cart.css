@@ -206,14 +206,18 @@
 }
 
 .cart-remove-button {
-  border: none;
   background: none;
-  color: #dc2626;
-  font-size: 20px;
+  border: none;
+  color: #ef4444;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  padding: 4px;
-  transition: color 0.15s ease, transform 0.1s ease;
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.cart-remove-button img {
+  width: 18px;
+  height: 18px;
 }
 
 .cart-remove-button:hover {

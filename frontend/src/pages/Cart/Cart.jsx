@@ -105,7 +105,7 @@ const Cart = () => {
                       }
                     }}
                   >
-                    ×
+                    <img src={assets.cart_remove_icon} alt="Remove" />
                   </button>
                   <span className="cart-item-total">BDT. {(item.price * item.quantity).toFixed(2)}</span>
                 </div>

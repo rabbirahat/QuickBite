@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import './ForgotPasswordPage.css'
 
 export function ForgotPasswordPage() {
@@ -18,9 +17,7 @@ export function ForgotPasswordPage() {
       <div className="fp-container">
         <div className="fp-card text-center">
           <div className="fp-center">
-            <div className="fp-icon-lg">
-              <CheckCircle className="check-icon" />
-            </div>
+            <div className="fp-icon-lg" aria-hidden="true">✓</div>
           </div>
 
           <h1 className="fp-title">Check Your Email</h1>
@@ -33,7 +30,7 @@ export function ForgotPasswordPage() {
           </p>
 
           <Link to="/login" className="fp-link" >
-            <ArrowLeft />
+            <span aria-hidden="true">←</span>
             <span>Back to Login</span>
           </Link>
         </div>
@@ -45,9 +42,7 @@ export function ForgotPasswordPage() {
     <div className="fp-container">
       <div className="fp-card">
         <div className="fp-center">
-          <div className="fp-icon-sm">
-            <Mail />
-          </div>
+          <div className="fp-icon-sm" aria-hidden="true">✉</div>
         </div>
 
         <h1 className="fp-title">Forgot Password?</h1>
@@ -71,7 +66,7 @@ export function ForgotPasswordPage() {
 
         <div className="fp-center-link">
           <Link to="/login" className="fp-link">
-            <ArrowLeft />
+            <span aria-hidden="true">←</span>
             <span>Back to Login</span>
           </Link>
         </div>

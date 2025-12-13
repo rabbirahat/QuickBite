@@ -30,4 +30,4 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// mongodb+srv://rabbirahat:quickbite25@cluster0.y4vfbp6.mongodb.net/?appName=Cluster0
+// mongodb+srv://rabbirahat:quickbite_123@cluster0.y4vfbp6.mongodb.net/?appName=Cluster0

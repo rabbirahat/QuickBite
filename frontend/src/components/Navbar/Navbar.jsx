@@ -5,8 +5,50 @@ import { assets } from '../../assets/assets'
 
 const Navbar = () => {
   const [menu, setMenu] = useState("Home");
+  const [user, setUser] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Check if user is logged in
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    } else {
+      setUser(null);
+    }
+  }, [location]); // Re-check when route changes
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showUserMenu && !event.target.closest('.user-menu-container')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showUserMenu]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setShowUserMenu(false);
+    navigate('/');
+  };
 
   const handleSectionClick = (e, sectionId) => {
     e.preventDefault();
@@ -47,9 +89,42 @@ const Navbar = () => {
           <Link to='/cart'><img src={assets.shopping_cart_icon} alt="Shopping Cart" /></Link>
           <div className="dot"></div>
         </div>
-        <Link to="/login">
-          <button>Sign in</button>
-        </Link>
+        {user ? (
+          <div className="user-menu-container">
+            <div 
+              className="user-info" 
+              onClick={() => setShowUserMenu(!showUserMenu)}
+            >
+              <div className="user-avatar">
+                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <span className="user-name">{user.name}</span>
+              <span className="dropdown-arrow">▼</span>
+            </div>
+            {showUserMenu && (
+              <div className="user-dropdown">
+                <div className="user-dropdown-header">
+                  <div className="user-dropdown-avatar">
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div className="user-dropdown-info">
+                    <div className="user-dropdown-name">{user.name}</div>
+                    <div className="user-dropdown-email">{user.email}</div>
+                  </div>
+                </div>
+                <div className="user-dropdown-divider"></div>
+                <button className="logout-button" onClick={handleLogout}>
+                  <img src={assets.logout_icon} alt="Logout" className="logout-icon" />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Link to="/login">
+            <button>Sign in</button>
+          </Link>
+        )}
       </div>
     </div>
   )

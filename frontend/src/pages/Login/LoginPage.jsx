@@ -1,12 +1,27 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './LoginPage.css';
+import { authAPI } from '../../utils/api';
 
 export function LoginPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Check for success message from signup
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear message after 5 seconds
+      const timer = setTimeout(() => setSuccessMessage(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,8 +38,8 @@ export function LoginPage() {
     if (!password) {
       return 'Password is required';
     }
-    if (password.length < 6) {
-      return 'Password must be at least 6 characters';
+    if (password.length < 5) {
+      return 'Password must be at least 5 characters';
     }
     return '';
   };
@@ -40,7 +55,7 @@ export function LoginPage() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const emailError = validateEmail(email);
@@ -56,8 +71,23 @@ export function LoginPage() {
     
     // Check if there are any errors
     if (!emailError && !passwordError) {
-      console.log('Login submitted:', { email, password });
-      // Form is valid, proceed with login
+      setLoading(true);
+      try {
+        const response = await authAPI.login(email, password);
+        
+        if (response.success) {
+          // Store token and user data
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          
+          // Redirect to home
+          navigate('/');
+        }
+      } catch (error) {
+        setErrors({ general: error.message || 'Login failed. Please check your credentials.' });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -79,6 +109,12 @@ export function LoginPage() {
         </div>
         <h1 className="login-title">Welcome Back</h1>
         <p className="login-subtitle">Login to your QuickBite account</p>
+
+        {successMessage && (
+          <div className="success-message">
+            {successMessage}
+          </div>
+        )}
 
         {errors.general && (
           <div className="error-message">
@@ -176,8 +212,9 @@ export function LoginPage() {
           <button
             type="submit"
             className="submit-button"
+            disabled={loading}
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 

@@ -12,7 +12,7 @@
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   padding: 2rem;
   width: 100%;
-  max-width: 28rem;
+  max-width: 32rem;
 }
 
 .signup-icon-container {
@@ -204,5 +204,71 @@
 
 .signup-link:hover {
   text-decoration: underline;
+}
+
+/* Preferences Section */
+.preferences-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.preferences-title {
+  color: #111827;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.menu-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.menu-chip {
+  padding: 0.5rem 1rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.menu-chip:hover:not(:disabled) {
+  border-color: #ea580c;
+  background-color: #fff7ed;
+}
+
+.menu-chip-selected {
+  border-color: #ea580c;
+  background-color: #fff7ed;
+  color: #ea580c;
+  font-weight: 500;
+}
+
+.menu-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-select-multiple {
+  min-height: 120px;
+  padding: 0.5rem;
+}
+
+.form-hint {
+  display: block;
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 

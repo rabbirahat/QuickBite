@@ -1,14 +1,47 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './SignupPage.css';
+import { menu_list, food_list } from '../../assets/assets';
+import { authAPI } from '../../utils/api';
 
 export function SignupPage() {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [loading, setLoading] = useState(false);
+  
+  // Preference states
+  const [topMenus, setTopMenus] = useState([]);
+  const [selectedMenus, setSelectedMenus] = useState([]);
+  const [topDishes, setTopDishes] = useState([]);
+  const [availableDishes, setAvailableDishes] = useState([]);
+  const [quality, setQuality] = useState('');
+  const [category, setCategory] = useState('');
+  const [pricePoint, setPricePoint] = useState('');
+
+  // Get unique menu names
+  const menuNames = menu_list.map(menu => menu.menu_name);
+
+  // Update available dishes when selected menus change
+  useEffect(() => {
+    if (selectedMenus.length > 0) {
+      const dishes = food_list.filter(food => 
+        selectedMenus.includes(food.category)
+      );
+      setAvailableDishes(dishes);
+      // Remove dishes that are no longer in available categories
+      setTopDishes(prev => prev.filter(dishId => 
+        dishes.some(d => d._id === dishId)
+      ));
+    } else {
+      setAvailableDishes([]);
+      setTopDishes([]);
+    }
+  }, [selectedMenus]);
 
   const validateName = (name) => {
     if (!name.trim()) {
@@ -38,17 +71,8 @@ export function SignupPage() {
     if (!password) {
       return 'Password is required';
     }
-    if (password.length < 8) {
-      return 'Password must be at least 8 characters';
-    }
-    if (!/(?=.*[a-z])/.test(password)) {
-      return 'Password must contain at least one lowercase letter';
-    }
-    if (!/(?=.*[A-Z])/.test(password)) {
-      return 'Password must contain at least one uppercase letter';
-    }
-    if (!/(?=.*\d)/.test(password)) {
-      return 'Password must contain at least one number';
+    if (password.length < 5) {
+      return 'Password must be at least 5 characters';
     }
     return '';
   };
@@ -61,6 +85,54 @@ export function SignupPage() {
       return 'Passwords do not match';
     }
     return '';
+  };
+
+  const validatePreferences = () => {
+    const prefErrors = {};
+    
+    if (topMenus.length !== 3) {
+      prefErrors.topMenus = 'Please select exactly 3 menus';
+    }
+    
+    if (topDishes.length !== 3) {
+      prefErrors.topDishes = 'Please select exactly 3 dishes';
+    }
+    
+    if (!quality || quality < 1 || quality > 5) {
+      prefErrors.quality = 'Please select a quality rating (1-5)';
+    }
+    
+    if (!category || category < 1 || category > 5) {
+      prefErrors.category = 'Please select a category rating (1-5)';
+    }
+    
+    if (!pricePoint || pricePoint < 1 || pricePoint > 5) {
+      prefErrors.pricePoint = 'Please select a price point rating (1-5)';
+    }
+    
+    return prefErrors;
+  };
+
+  const handleMenuSelect = (menuName) => {
+    if (topMenus.includes(menuName)) {
+      // Remove menu
+      setTopMenus(prev => prev.filter(m => m !== menuName));
+      setSelectedMenus(prev => prev.filter(m => m !== menuName));
+    } else if (topMenus.length < 3) {
+      // Add menu
+      setTopMenus(prev => [...prev, menuName]);
+      setSelectedMenus(prev => [...prev, menuName]);
+    }
+  };
+
+  const handleDishSelect = (dishId) => {
+    if (topDishes.includes(dishId)) {
+      // Remove dish
+      setTopDishes(prev => prev.filter(d => d !== dishId));
+    } else if (topDishes.length < 3) {
+      // Add dish
+      setTopDishes(prev => [...prev, dishId]);
+    }
   };
 
   const handleBlur = (field) => {
@@ -85,28 +157,72 @@ export function SignupPage() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const nameError = validateName(name);
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
     const confirmPasswordError = validateConfirmPassword(confirmPassword, password);
+    const prefErrors = validatePreferences();
     
     const newErrors = {
       name: nameError,
       email: emailError,
       password: passwordError,
-      confirmPassword: confirmPasswordError
+      confirmPassword: confirmPasswordError,
+      ...prefErrors
     };
     
     setErrors(newErrors);
-    setTouched({ name: true, email: true, password: true, confirmPassword: true });
+    setTouched({ 
+      name: true, 
+      email: true, 
+      password: true, 
+      confirmPassword: true,
+      topMenus: true,
+      topDishes: true,
+      quality: true,
+      category: true,
+      pricePoint: true
+    });
     
     // Check if there are any errors
-    if (!nameError && !emailError && !passwordError && !confirmPasswordError) {
-      console.log('Signup submitted:', { name, email, password, confirmPassword });
-      // Form is valid, proceed with signup
+    if (!nameError && !emailError && !passwordError && !confirmPasswordError && 
+        Object.keys(prefErrors).length === 0) {
+      setLoading(true);
+      try {
+        const userData = {
+          name,
+          email,
+          password,
+          preferences: {
+            topMenus,
+            topDishes,
+            quality: parseInt(quality),
+            category: parseInt(category),
+            pricePoint: parseInt(pricePoint)
+          }
+        };
+        
+        const response = await authAPI.signup(userData);
+        
+        if (response.success) {
+          // Don't store token on signup - user needs to login
+          // Redirect to login page
+          navigate('/login', { 
+            state: { message: 'Account created successfully! Please login.' } 
+          });
+        }
+      } catch (error) {
+        console.error('Signup error:', error);
+        setErrors({ 
+          general: error.message || 'Signup failed. Please try again.',
+          ...errors // Keep existing field errors
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -260,11 +376,176 @@ export function SignupPage() {
               <span className="error-text">{errors.confirmPassword}</span>
             )}
           </div>
+
+          {/* Preferences Section */}
+          <div className="preferences-section">
+            <h3 className="preferences-title">Help us personalize your experience</h3>
+            
+            {/* Top 3 Menus */}
+            <div className="form-group">
+              <label className="form-label">
+                Pick your top 3 menus {topMenus.length > 0 && `(${topMenus.length}/3)`}
+              </label>
+              <div className="menu-selection">
+                {menuNames.map((menuName) => (
+                  <button
+                    key={menuName}
+                    type="button"
+                    onClick={() => handleMenuSelect(menuName)}
+                    className={`menu-chip ${topMenus.includes(menuName) ? 'menu-chip-selected' : ''}`}
+                    disabled={!topMenus.includes(menuName) && topMenus.length >= 3}
+                  >
+                    {menuName}
+                    {topMenus.includes(menuName) && ' ✓'}
+                  </button>
+                ))}
+              </div>
+              {touched.topMenus && errors.topMenus && (
+                <span className="error-text">{errors.topMenus}</span>
+              )}
+            </div>
+
+            {/* Top 3 Dishes */}
+            {selectedMenus.length > 0 && (
+              <div className="form-group">
+                <label className="form-label">
+                  Pick your top 3 dishes {topDishes.length > 0 && `(${topDishes.length}/3)`}
+                </label>
+                <select
+                  multiple
+                  value={topDishes}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, option => option.value);
+                    if (selected.length <= 3) {
+                      setTopDishes(selected);
+                      if (touched.topDishes) {
+                        setErrors({ ...errors, topDishes: selected.length !== 3 ? 'Please select exactly 3 dishes' : '' });
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    setTouched({ ...touched, topDishes: true });
+                    if (topDishes.length !== 3) {
+                      setErrors({ ...errors, topDishes: 'Please select exactly 3 dishes' });
+                    }
+                  }}
+                  className={`form-input form-select-multiple ${touched.topDishes && errors.topDishes ? 'form-input-error' : ''}`}
+                  size="5"
+                >
+                  {availableDishes.map((dish) => (
+                    <option key={dish._id} value={dish._id}>
+                      {dish.name} ({dish.category})
+                    </option>
+                  ))}
+                </select>
+                <small className="form-hint">Hold Ctrl (Windows) or Cmd (Mac) to select multiple dishes</small>
+                {touched.topDishes && errors.topDishes && (
+                  <span className="error-text">{errors.topDishes}</span>
+                )}
+              </div>
+            )}
+
+            {/* Quality Input */}
+            <div className="form-group">
+              <label className="form-label">Quality Rating (1-5)</label>
+              <select
+                value={quality}
+                onChange={(e) => {
+                  setQuality(e.target.value);
+                  if (touched.quality) {
+                    setErrors({ ...errors, quality: '' });
+                  }
+                }}
+                onBlur={() => {
+                  setTouched({ ...touched, quality: true });
+                  if (!quality) {
+                    setErrors({ ...errors, quality: 'Please select a quality rating' });
+                  }
+                }}
+                className={`form-input ${touched.quality && errors.quality ? 'form-input-error' : ''}`}
+              >
+                <option value="">Select quality rating</option>
+                <option value="1">1 - Poor</option>
+                <option value="2">2 - Below Average</option>
+                <option value="3">3 - Average</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Excellent</option>
+              </select>
+              {touched.quality && errors.quality && (
+                <span className="error-text">{errors.quality}</span>
+              )}
+            </div>
+
+            {/* Category Input */}
+            <div className="form-group">
+              <label className="form-label">Category Rating (1-5)</label>
+              <select
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  if (touched.category) {
+                    setErrors({ ...errors, category: '' });
+                  }
+                }}
+                onBlur={() => {
+                  setTouched({ ...touched, category: true });
+                  if (!category) {
+                    setErrors({ ...errors, category: 'Please select a category rating' });
+                  }
+                }}
+                className={`form-input ${touched.category && errors.category ? 'form-input-error' : ''}`}
+              >
+                <option value="">Select category rating</option>
+                <option value="1">1 - Bad</option>
+                <option value="2">2 - Bad</option>
+                <option value="3">3 - Average</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Good</option>
+              </select>
+              <small className="form-hint">1-2: Bad, 3: Average, 4-5: Good</small>
+              {touched.category && errors.category && (
+                <span className="error-text">{errors.category}</span>
+              )}
+            </div>
+
+            {/* Price Point Input */}
+            <div className="form-group">
+              <label className="form-label">Price Satisfaction (1-5)</label>
+              <select
+                value={pricePoint}
+                onChange={(e) => {
+                  setPricePoint(e.target.value);
+                  if (touched.pricePoint) {
+                    setErrors({ ...errors, pricePoint: '' });
+                  }
+                }}
+                onBlur={() => {
+                  setTouched({ ...touched, pricePoint: true });
+                  if (!pricePoint) {
+                    setErrors({ ...errors, pricePoint: 'Please select a price satisfaction rating' });
+                  }
+                }}
+                className={`form-input ${touched.pricePoint && errors.pricePoint ? 'form-input-error' : ''}`}
+              >
+                <option value="">Select price satisfaction</option>
+                <option value="1">1 - Very Unsatisfied</option>
+                <option value="2">2 - Unsatisfied</option>
+                <option value="3">3 - Neutral</option>
+                <option value="4">4 - Satisfied</option>
+                <option value="5">5 - Very Satisfied</option>
+              </select>
+              {touched.pricePoint && errors.pricePoint && (
+                <span className="error-text">{errors.pricePoint}</span>
+              )}
+            </div>
+          </div>
+
           <button
             type="submit"
             className="submit-button"
+            disabled={loading}
           >
-            Create Account
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 

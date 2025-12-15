@@ -71,5 +71,41 @@ export const foodAPI = {
     }
 };
 
+// Review API
+export const reviewAPI = {
+    listForFood: async (foodId) => {
+        return apiRequest(`/reviews/food/${foodId}`, {
+            method: 'GET'
+        });
+    },
+    listMine: async () => {
+        return apiRequest('/reviews/me', {
+            method: 'GET'
+        });
+    },
+    listAll: async () => {
+        return apiRequest('/reviews', {
+            method: 'GET'
+        });
+    },
+    create: async (foodId, payload) => {
+        return apiRequest(`/reviews/food/${foodId}`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    },
+    update: async (reviewId, payload) => {
+        return apiRequest(`/reviews/${reviewId}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+        });
+    },
+    remove: async (reviewId) => {
+        return apiRequest(`/reviews/${reviewId}`, {
+            method: 'DELETE'
+        });
+    }
+};
+
 export default apiRequest;
 

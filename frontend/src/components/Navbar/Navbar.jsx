@@ -52,7 +52,7 @@ const Navbar = () => {
 
   const handleSectionClick = (e, sectionId) => {
     e.preventDefault();
-    
+
     if (location.pathname === '/') {
       // If we're on home page, scroll smoothly to section
       const element = document.getElementById(sectionId);
@@ -63,7 +63,7 @@ const Navbar = () => {
       // If we're on another page, navigate to home with hash
       navigate(`/#${sectionId}`);
     }
-    
+
     // Update menu state
     if (sectionId === 'explore-menu') setMenu("Menu");
     else if (sectionId === 'app-download') setMenu("Mobile App");
@@ -78,10 +78,10 @@ const Navbar = () => {
         <span className="logo-text">QuickBite</span>
       </Link>
       <ul className="navbar-menu">
-        <Link to='/' onClick={()=>setMenu("Home")} className={menu==="Home"?"active":""}>Home</Link>
-        <a href='#explore-menu' onClick={(e) => handleSectionClick(e, 'explore-menu')} className={menu==="Menu"?"active":""}>Menu</a>
+        <Link to='/' onClick={() => setMenu("Home")} className={menu === "Home" ? "active" : ""}>Home</Link>
+        <a href='#explore-menu' onClick={(e) => handleSectionClick(e, 'explore-menu')} className={menu === "Menu" ? "active" : ""}>Menu</a>
         {/* <a href='#app-download' onClick={(e) => handleSectionClick(e, 'app-download')} className={menu==="Mobile App"?"active":""}>Mobile App</a> */}
-        <a href='#footer' onClick={(e) => handleSectionClick(e, 'footer')} className={menu==="Contact Us"?"active":""}>Contact Us</a>
+        <a href='#footer' onClick={(e) => handleSectionClick(e, 'footer')} className={menu === "Contact Us" ? "active" : ""}>Contact Us</a>
       </ul>
       <div className='navbar-right'>
         <img src={assets.search_icon} alt="" />
@@ -91,30 +91,43 @@ const Navbar = () => {
         </div>
         {user ? (
           <div className="user-menu-container">
-            <div 
-              className="user-info" 
+            <button
+              type="button"
+              className="user-info"
               onClick={() => setShowUserMenu(!showUserMenu)}
             >
               <div className="user-avatar">
-                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                {user.name ? user.name.charAt(0).toUpperCase() : "U"}
               </div>
-              <span className="user-name">{user.name}</span>
+              <span className="user-name">
+                {user.name || "User"}
+              </span>
               <span className="dropdown-arrow">▼</span>
-            </div>
+            </button>
+
             {showUserMenu && (
               <div className="user-dropdown">
                 <div className="user-dropdown-header">
                   <div className="user-dropdown-avatar">
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                   </div>
                   <div className="user-dropdown-info">
-                    <div className="user-dropdown-name">{user.name}</div>
-                    <div className="user-dropdown-email">{user.email}</div>
+                    <div className="user-dropdown-name">
+                      {user.name || "User"}
+                    </div>
+                    <div className="user-dropdown-email">
+                      {user.email || ""}
+                    </div>
                   </div>
                 </div>
-                <div className="user-dropdown-divider"></div>
-                <button className="logout-button" onClick={handleLogout}>
-                  <img src={assets.logout_icon} alt="Logout" className="logout-icon" />
+
+                <div className="user-dropdown-divider" />
+
+                <button
+                  type="button"
+                  className="logout-button"
+                  onClick={handleLogout}
+                >
                   Logout
                 </button>
               </div>

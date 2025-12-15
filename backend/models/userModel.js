@@ -1,49 +1,34 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-// Define preferences schema as a subdocument
-const preferencesSchema = new mongoose.Schema({
+// Preferences used for recommendations (per user)
+const preferencesSchema = new mongoose.Schema(
+  {
     topMenus: {
-        type: [String],
-        required: true,
-        validate: {
-            validator: function(v) {
-                return v && Array.isArray(v) && v.length === 3;
-            },
-            message: 'Please select exactly 3 menus'
-        }
+      type: [String],
+      required: true,
+      validate: {
+        validator: function (v) {
+          return v && Array.isArray(v) && v.length === 3;
+        },
+        message: "Please select exactly 3 menus",
+      },
     },
     topDishes: {
-        type: [String],
-        required: true,
-        validate: {
-            validator: function(v) {
-                return v && Array.isArray(v) && v.length === 3;
-            },
-            message: 'Please select exactly 3 dishes'
-        }
+      type: [String],
+      required: true,
+      validate: {
+        validator: function (v) {
+          return v && Array.isArray(v) && v.length === 3;
+        },
+        message: "Please select exactly 3 dishes",
+      },
     },
-    quality: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5
-    },
-    category: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5
-    },
-    pricePoint: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5
-    }
-}, {
-    _id: false // Don't create separate _id for subdocument
-});
+  },
+  {
+    _id: false,
+  }
+);
 
 const userSchema = new mongoose.Schema({
     name: { 
@@ -63,7 +48,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 5
     },
-    // User preferences for recommendations
     preferences: {
         type: preferencesSchema,
         required: true

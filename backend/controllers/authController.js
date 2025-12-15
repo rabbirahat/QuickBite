@@ -27,7 +27,7 @@ const signup = async (req, res) => {
             });
         }
 
-        // Validate preferences
+        // Validate preferences (top menus and dishes)
         if (!preferences.topMenus || preferences.topMenus.length !== 3) {
             return res.status(400).json({
                 success: false,
@@ -42,27 +42,6 @@ const signup = async (req, res) => {
             });
         }
 
-        if (!preferences.quality || preferences.quality < 1 || preferences.quality > 5) {
-            return res.status(400).json({
-                success: false,
-                message: "Quality must be between 1 and 5"
-            });
-        }
-
-        if (!preferences.category || preferences.category < 1 || preferences.category > 5) {
-            return res.status(400).json({
-                success: false,
-                message: "Category must be between 1 and 5"
-            });
-        }
-
-        if (!preferences.pricePoint || preferences.pricePoint < 1 || preferences.pricePoint > 5) {
-            return res.status(400).json({
-                success: false,
-                message: "Price point must be between 1 and 5"
-            });
-        }
-
         // Check if user already exists
         const existingUser = await userModel.findOne({ email: email.toLowerCase() });
         if (existingUser) {
@@ -72,24 +51,11 @@ const signup = async (req, res) => {
             });
         }
 
-        // Create new user
-        console.log('=== SIGNUP DEBUG ===');
-        console.log('Received preferences:', JSON.stringify(preferences, null, 2));
-        console.log('topMenus:', preferences.topMenus, 'Type:', Array.isArray(preferences.topMenus), 'Length:', preferences.topMenus?.length);
-        console.log('topDishes:', preferences.topDishes, 'Type:', Array.isArray(preferences.topDishes), 'Length:', preferences.topDishes?.length);
-        console.log('quality:', preferences.quality, 'category:', preferences.category, 'pricePoint:', preferences.pricePoint);
-        
-        // Ensure preferences object is properly structured
         const preferencesData = {
             topMenus: Array.isArray(preferences.topMenus) ? preferences.topMenus : [],
-            topDishes: Array.isArray(preferences.topDishes) ? preferences.topDishes : [],
-            quality: Number(preferences.quality),
-            category: Number(preferences.category),
-            pricePoint: Number(preferences.pricePoint)
+            topDishes: Array.isArray(preferences.topDishes) ? preferences.topDishes : []
         };
-        
-        console.log('Processed preferences:', JSON.stringify(preferencesData, null, 2));
-        
+
         const user = new userModel({
             name,
             email: email.toLowerCase(),
@@ -114,27 +80,14 @@ const signup = async (req, res) => {
 
         // Log before save
         console.log('User object before save:', JSON.stringify(user.toObject(), null, 2));
-        console.log('User.preferences before save:', JSON.stringify(user.preferences, null, 2));
         
         await user.save();
         
         // Verify preferences were saved by fetching fresh from DB
-        const savedUser = await userModel.findById(user._id).lean();
         console.log('\n========== AFTER SAVE ==========');
         console.log('User saved successfully!');
-        console.log('User ID:', savedUser._id);
-        console.log('Full saved user document:', JSON.stringify(savedUser, null, 2));
-        console.log('\n--- Preferences Check ---');
-        console.log('savedUser.preferences exists?', !!savedUser.preferences);
-        console.log('savedUser.preferences type:', typeof savedUser.preferences);
-        console.log('Saved preferences:', JSON.stringify(savedUser.preferences, null, 2));
-        if (savedUser.preferences) {
-            console.log('topMenus:', savedUser.preferences.topMenus);
-            console.log('topDishes:', savedUser.preferences.topDishes);
-            console.log('quality:', savedUser.preferences.quality);
-            console.log('category:', savedUser.preferences.category);
-            console.log('pricePoint:', savedUser.preferences.pricePoint);
-        }
+        console.log('User ID:', user._id);
+        console.log('Preferences saved:', JSON.stringify(user.preferences, null, 2));
         console.log('===============================\n');
 
         // Generate token
@@ -224,8 +177,7 @@ const login = async (req, res) => {
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email,
-                preferences: user.preferences
+                email: user.email
             }
         });
     } catch (error) {

@@ -297,8 +297,8 @@
   color: white;
   border: none;
   border-radius: 5px;
-  padding: 12px 20px;
-  font-size: 16px;
+  padding: 10px 18px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -311,17 +311,19 @@
 
 .review-form-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: flex-end;
   align-items: center;
+  margin-top: 8px;
 }
 
 .cancel-edit-btn {
   background: #f0f0f0;
   border: 1px solid #d0d0d0;
-  padding: 10px 14px;
+  padding: 10px 18px;
   border-radius: 5px;
   font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -447,7 +449,33 @@
   font-size: 15px;
   color: #555;
   line-height: 1.6;
-  margin: 0;
+  margin: 0 0 10px 0;
+}
+
+.review-extra-ratings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.extra-rating-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f5f5f5;
+  font-size: 12px;
+  color: #555;
+}
+
+.pill-label {
+  font-weight: 600;
+  color: #444;
+}
+
+.pill-value {
+  color: #ff5722;
 }
 
 /* Responsive Design */

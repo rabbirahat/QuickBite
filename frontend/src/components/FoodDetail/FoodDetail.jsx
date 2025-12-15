@@ -15,6 +15,9 @@ const FoodDetail = () => {
   // Review state
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewComment, setReviewComment] = useState('')
+  const [qualityRating, setQualityRating] = useState('')
+  const [categoryRating, setCategoryRating] = useState('')
+  const [priceSatisfaction, setPriceSatisfaction] = useState('')
   const [showReviewSuccess, setShowReviewSuccess] = useState(false)
   const [reviews, setReviews] = useState([])
   const [reviewsLoading, setReviewsLoading] = useState(true)
@@ -76,8 +79,8 @@ const FoodDetail = () => {
       return
     }
 
-    if (!reviewComment.trim()) {
-      setReviewError('Please fill in all fields')
+    if (!reviewComment.trim() || !qualityRating || !categoryRating || !priceSatisfaction) {
+      setReviewError('Please fill in all fields, including all ratings.')
       return
     }
 
@@ -89,6 +92,9 @@ const FoodDetail = () => {
         const response = await reviewAPI.update(editingReviewId, {
           rating: reviewRating,
           comment: reviewComment,
+          qualityRating: qualityRating ? Number(qualityRating) : undefined,
+          categoryRating: categoryRating ? Number(categoryRating) : undefined,
+          priceSatisfaction: priceSatisfaction ? Number(priceSatisfaction) : undefined,
         })
 
         setReviews((prev) =>
@@ -101,6 +107,9 @@ const FoodDetail = () => {
         const response = await reviewAPI.create(id, {
           rating: reviewRating,
           comment: reviewComment,
+          qualityRating: qualityRating ? Number(qualityRating) : undefined,
+          categoryRating: categoryRating ? Number(categoryRating) : undefined,
+          priceSatisfaction: priceSatisfaction ? Number(priceSatisfaction) : undefined,
         })
         // ensure list is up to date from server for all users (no local prepend to avoid duplicates)
         await fetchReviews()
@@ -108,6 +117,9 @@ const FoodDetail = () => {
 
       setReviewRating(5)
       setReviewComment('')
+      setQualityRating('')
+      setCategoryRating('')
+      setPriceSatisfaction('')
       setShowReviewSuccess(true)
       setTimeout(() => setShowReviewSuccess(false), 3000)
     } catch (error) {
@@ -121,6 +133,9 @@ const FoodDetail = () => {
     setEditingReviewId(review._id)
     setReviewRating(review.rating)
     setReviewComment(review.comment)
+    setQualityRating(review.qualityRating ? String(review.qualityRating) : '')
+    setCategoryRating(review.categoryRating ? String(review.categoryRating) : '')
+    setPriceSatisfaction(review.priceSatisfaction ? String(review.priceSatisfaction) : '')
     setReviewError('')
   }
 
@@ -258,6 +273,58 @@ const FoodDetail = () => {
                 </div>
 
                 <div className="form-group">
+                  <label htmlFor="qualityRating">Quality Rating (1-5)</label>
+                  <select
+                    id="qualityRating"
+                    value={qualityRating}
+                    onChange={(e) => setQualityRating(e.target.value)}
+                    required
+                  >
+                    <option value="">Select quality rating</option>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Below Average</option>
+                    <option value="3">3 - Average</option>
+                    <option value="4">4 - Good</option>
+                    <option value="5">5 - Excellent</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="categoryRating">Category Rating (1-5)</label>
+                  <select
+                    id="categoryRating"
+                    value={categoryRating}
+                    onChange={(e) => setCategoryRating(e.target.value)}
+                    required
+                  >
+                    <option value="">Select category rating</option>
+                    <option value="1">1 - Very Bad</option>
+                    <option value="2">2 - Bad</option>
+                    <option value="3">3 - Average</option>
+                    <option value="4">4 - Good</option>
+                    <option value="5">5 - Very Good</option>
+                  </select>
+                  <small className="form-hint">1-2: Bad, 3: Average, 4-5: Good</small>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="priceSatisfaction">Price Satisfaction (1-5)</label>
+                  <select
+                    id="priceSatisfaction"
+                    value={priceSatisfaction}
+                    onChange={(e) => setPriceSatisfaction(e.target.value)}
+                    required
+                  >
+                    <option value="">Select price satisfaction</option>
+                    <option value="1">1 - Very Unsatisfied</option>
+                    <option value="2">2 - Unsatisfied</option>
+                    <option value="3">3 - Neutral</option>
+                    <option value="4">4 - Satisfied</option>
+                    <option value="5">5 - Very Satisfied</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
                   <label htmlFor="reviewComment">Your Review</label>
                   <textarea
                     id="reviewComment"
@@ -278,6 +345,9 @@ const FoodDetail = () => {
                         setEditingReviewId(null)
                         setReviewRating(5)
                         setReviewComment('')
+                        setQualityRating('')
+                        setCategoryRating('')
+                        setPriceSatisfaction('')
                       }}
                     >
                       Cancel
@@ -345,6 +415,26 @@ const FoodDetail = () => {
                     )}
                   </div>
                   <p className="review-comment">{review.comment}</p>
+                  <div className="review-extra-ratings">
+                    <div className="extra-rating-pill">
+                      <span className="pill-label">Quality</span>
+                      <span className="pill-value">
+                        {review.qualityRating ?? '-'} / 5
+                      </span>
+                    </div>
+                    <div className="extra-rating-pill">
+                      <span className="pill-label">Category</span>
+                      <span className="pill-value">
+                        {review.categoryRating ?? '-'} / 5
+                      </span>
+                    </div>
+                    <div className="extra-rating-pill">
+                      <span className="pill-label">Price</span>
+                      <span className="pill-value">
+                        {review.priceSatisfaction ?? '-'} / 5
+                      </span>
+                    </div>
+                  </div>
                 </div>
               ))
             )}

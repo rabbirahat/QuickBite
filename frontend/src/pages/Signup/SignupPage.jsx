@@ -19,9 +19,6 @@ export function SignupPage() {
   const [selectedMenus, setSelectedMenus] = useState([]);
   const [topDishes, setTopDishes] = useState([]);
   const [availableDishes, setAvailableDishes] = useState([]);
-  const [quality, setQuality] = useState('');
-  const [category, setCategory] = useState('');
-  const [pricePoint, setPricePoint] = useState('');
 
   // Get unique menu names
   const menuNames = menu_list.map(menu => menu.menu_name);
@@ -98,18 +95,6 @@ export function SignupPage() {
       prefErrors.topDishes = 'Please select exactly 3 dishes';
     }
     
-    if (!quality || quality < 1 || quality > 5) {
-      prefErrors.quality = 'Please select a quality rating (1-5)';
-    }
-    
-    if (!category || category < 1 || category > 5) {
-      prefErrors.category = 'Please select a category rating (1-5)';
-    }
-    
-    if (!pricePoint || pricePoint < 1 || pricePoint > 5) {
-      prefErrors.pricePoint = 'Please select a price point rating (1-5)';
-    }
-    
     return prefErrors;
   };
 
@@ -181,14 +166,11 @@ export function SignupPage() {
       password: true, 
       confirmPassword: true,
       topMenus: true,
-      topDishes: true,
-      quality: true,
-      category: true,
-      pricePoint: true
+      topDishes: true
     });
     
     // Check if there are any errors
-    if (!nameError && !emailError && !passwordError && !confirmPasswordError && 
+    if (!nameError && !emailError && !passwordError && !confirmPasswordError &&
         Object.keys(prefErrors).length === 0) {
       setLoading(true);
       try {
@@ -198,10 +180,7 @@ export function SignupPage() {
           password,
           preferences: {
             topMenus,
-            topDishes,
-            quality: parseInt(quality),
-            category: parseInt(category),
-            pricePoint: parseInt(pricePoint)
+            topDishes
           }
         };
         
@@ -404,140 +383,32 @@ export function SignupPage() {
                 <span className="error-text">{errors.topMenus}</span>
               )}
             </div>
-
+            
             {/* Top 3 Dishes */}
             {selectedMenus.length > 0 && (
               <div className="form-group">
                 <label className="form-label">
                   Pick your top 3 dishes {topDishes.length > 0 && `(${topDishes.length}/3)`}
                 </label>
-                <select
-                  multiple
-                  value={topDishes}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, option => option.value);
-                    if (selected.length <= 3) {
-                      setTopDishes(selected);
-                      if (touched.topDishes) {
-                        setErrors({ ...errors, topDishes: selected.length !== 3 ? 'Please select exactly 3 dishes' : '' });
-                      }
-                    }
-                  }}
-                  onBlur={() => {
-                    setTouched({ ...touched, topDishes: true });
-                    if (topDishes.length !== 3) {
-                      setErrors({ ...errors, topDishes: 'Please select exactly 3 dishes' });
-                    }
-                  }}
-                  className={`form-input form-select-multiple ${touched.topDishes && errors.topDishes ? 'form-input-error' : ''}`}
-                  size="5"
-                >
+                <div className="dish-grid">
                   {availableDishes.map((dish) => (
-                    <option key={dish._id} value={dish._id}>
-                      {dish.name} ({dish.category})
-                    </option>
+                    <button
+                      key={dish._id}
+                      type="button"
+                      onClick={() => handleDishSelect(dish._id)}
+                      className={`dish-card ${topDishes.includes(dish._id) ? 'dish-card-selected' : ''}`}
+                      disabled={!topDishes.includes(dish._id) && topDishes.length >= 3}
+                    >
+                      <div className="dish-name">{dish.name}</div>
+                      <div className="dish-meta">{dish.category}</div>
+                    </button>
                   ))}
-                </select>
-                <small className="form-hint">Hold Ctrl (Windows) or Cmd (Mac) to select multiple dishes</small>
+                </div>
                 {touched.topDishes && errors.topDishes && (
                   <span className="error-text">{errors.topDishes}</span>
                 )}
               </div>
             )}
-
-            {/* Quality Input */}
-            <div className="form-group">
-              <label className="form-label">Quality Rating (1-5)</label>
-              <select
-                value={quality}
-                onChange={(e) => {
-                  setQuality(e.target.value);
-                  if (touched.quality) {
-                    setErrors({ ...errors, quality: '' });
-                  }
-                }}
-                onBlur={() => {
-                  setTouched({ ...touched, quality: true });
-                  if (!quality) {
-                    setErrors({ ...errors, quality: 'Please select a quality rating' });
-                  }
-                }}
-                className={`form-input ${touched.quality && errors.quality ? 'form-input-error' : ''}`}
-              >
-                <option value="">Select quality rating</option>
-                <option value="1">1 - Poor</option>
-                <option value="2">2 - Below Average</option>
-                <option value="3">3 - Average</option>
-                <option value="4">4 - Good</option>
-                <option value="5">5 - Excellent</option>
-              </select>
-              {touched.quality && errors.quality && (
-                <span className="error-text">{errors.quality}</span>
-              )}
-            </div>
-
-            {/* Category Input */}
-            <div className="form-group">
-              <label className="form-label">Category Rating (1-5)</label>
-              <select
-                value={category}
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  if (touched.category) {
-                    setErrors({ ...errors, category: '' });
-                  }
-                }}
-                onBlur={() => {
-                  setTouched({ ...touched, category: true });
-                  if (!category) {
-                    setErrors({ ...errors, category: 'Please select a category rating' });
-                  }
-                }}
-                className={`form-input ${touched.category && errors.category ? 'form-input-error' : ''}`}
-              >
-                <option value="">Select category rating</option>
-                <option value="1">1 - Bad</option>
-                <option value="2">2 - Bad</option>
-                <option value="3">3 - Average</option>
-                <option value="4">4 - Good</option>
-                <option value="5">5 - Good</option>
-              </select>
-              <small className="form-hint">1-2: Bad, 3: Average, 4-5: Good</small>
-              {touched.category && errors.category && (
-                <span className="error-text">{errors.category}</span>
-              )}
-            </div>
-
-            {/* Price Point Input */}
-            <div className="form-group">
-              <label className="form-label">Price Satisfaction (1-5)</label>
-              <select
-                value={pricePoint}
-                onChange={(e) => {
-                  setPricePoint(e.target.value);
-                  if (touched.pricePoint) {
-                    setErrors({ ...errors, pricePoint: '' });
-                  }
-                }}
-                onBlur={() => {
-                  setTouched({ ...touched, pricePoint: true });
-                  if (!pricePoint) {
-                    setErrors({ ...errors, pricePoint: 'Please select a price satisfaction rating' });
-                  }
-                }}
-                className={`form-input ${touched.pricePoint && errors.pricePoint ? 'form-input-error' : ''}`}
-              >
-                <option value="">Select price satisfaction</option>
-                <option value="1">1 - Very Unsatisfied</option>
-                <option value="2">2 - Unsatisfied</option>
-                <option value="3">3 - Neutral</option>
-                <option value="4">4 - Satisfied</option>
-                <option value="5">5 - Very Satisfied</option>
-              </select>
-              {touched.pricePoint && errors.pricePoint && (
-                <span className="error-text">{errors.pricePoint}</span>
-              )}
-            </div>
           </div>
 
           <button

@@ -267,6 +267,53 @@
   margin-top: 0.25rem;
 }
 
+.dish-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.dish-card {
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem 0.9rem;
+  text-align: left;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dish-card:hover:not(:disabled) {
+  border-color: #ea580c;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  background: #fff7ed;
+}
+
+.dish-card-selected {
+  border-color: #ea580c;
+  background: #fff7ed;
+}
+
+.dish-card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dish-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.dish-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
 .submit-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;

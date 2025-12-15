@@ -24,6 +24,25 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    // Extra preference-style ratings per review (1-5)
+    qualityRating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
+    categoryRating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
+    priceSatisfaction: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
   },
   {
     timestamps: true,

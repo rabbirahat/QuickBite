@@ -6,7 +6,13 @@ import foodModel from "../models/foodModel.js";
 export const createReview = async (req, res) => {
   try {
     const { foodId } = req.params;
-    const { rating, comment } = req.body;
+    const {
+      rating,
+      comment,
+      qualityRating,
+      categoryRating,
+      priceSatisfaction,
+    } = req.body;
 
     if (!rating || !comment) {
       return res.status(400).json({
@@ -43,6 +49,9 @@ export const createReview = async (req, res) => {
       user: req.user._id,
       rating,
       comment,
+      qualityRating,
+      categoryRating,
+      priceSatisfaction,
     });
 
     const populated = await review.populate("user", "name email");
@@ -106,7 +115,13 @@ export const getMyReviews = async (req, res) => {
 export const updateReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
-    const { rating, comment } = req.body;
+    const {
+      rating,
+      comment,
+      qualityRating,
+      categoryRating,
+      priceSatisfaction,
+    } = req.body;
 
     const review = await reviewModel.findById(reviewId);
 
@@ -126,6 +141,10 @@ export const updateReview = async (req, res) => {
 
     review.rating = rating ?? review.rating;
     review.comment = comment ?? review.comment;
+    if (qualityRating !== undefined) review.qualityRating = qualityRating;
+    if (categoryRating !== undefined) review.categoryRating = categoryRating;
+    if (priceSatisfaction !== undefined)
+      review.priceSatisfaction = priceSatisfaction;
 
     await review.save();
     const populated = await review.populate("user", "name email");

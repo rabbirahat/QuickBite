@@ -102,9 +102,8 @@ const FoodDetail = () => {
           rating: reviewRating,
           comment: reviewComment,
         })
-        // ensure list is up to date from server for all users
+        // ensure list is up to date from server for all users (no local prepend to avoid duplicates)
         await fetchReviews()
-        setReviews((prev) => [response.data, ...prev])
       }
 
       setReviewRating(5)

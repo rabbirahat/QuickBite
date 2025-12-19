@@ -53,13 +53,29 @@ const FoodDetail = () => {
     setReviewError('')
     try {
       const response = await reviewAPI.listForFood(id)
-      setReviews(response.data || [])
+      let reviewsList = response.data || []
+      
+      // If user is logged in, move their review to the top
+      if (currentUser && currentUser.id) {
+        const userReviewIndex = reviewsList.findIndex(
+          (review) => review.user?._id === currentUser.id || review.user?.id === currentUser.id
+        )
+        
+        if (userReviewIndex !== -1) {
+          // Remove user's review from its current position
+          const userReview = reviewsList.splice(userReviewIndex, 1)[0]
+          // Place it at the beginning
+          reviewsList = [userReview, ...reviewsList]
+        }
+      }
+      
+      setReviews(reviewsList)
     } catch (error) {
       setReviewError(error.message || 'Unable to load reviews')
     } finally {
       setReviewsLoading(false)
     }
-  }, [id])
+  }, [id, currentUser])
 
   useEffect(() => {
     fetchReviews()
@@ -97,11 +113,28 @@ const FoodDetail = () => {
           priceSatisfaction: priceSatisfaction ? Number(priceSatisfaction) : undefined,
         })
 
-        setReviews((prev) =>
-          prev.map((review) =>
+        // Update the review and ensure user's review stays at the top
+        setReviews((prev) => {
+          const updated = prev.map((review) =>
             review._id === editingReviewId ? response.data : review
           )
-        )
+          
+          // If user is logged in, ensure their review is at the top
+          if (currentUser && currentUser.id) {
+            const userReviewIndex = updated.findIndex(
+              (review) => review.user?._id === currentUser.id || review.user?.id === currentUser.id
+            )
+            
+            if (userReviewIndex > 0) {
+              // Remove user's review from its current position
+              const userReview = updated.splice(userReviewIndex, 1)[0]
+              // Place it at the beginning
+              return [userReview, ...updated]
+            }
+          }
+          
+          return updated
+        })
         setEditingReviewId(null)
       } else {
         const response = await reviewAPI.create(id, {

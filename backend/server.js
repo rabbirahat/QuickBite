@@ -5,6 +5,7 @@ import { connect } from 'mongoose';
 import foodRouter from './routes/foodRoute.js';
 import authRouter from './routes/authRoute.js';
 import reviewRouter from './routes/reviewRoute.js';
+import recommendationRouter from './routes/recommendationRoute.js';
 
 
 // app config
@@ -22,6 +23,7 @@ connectDB();
 app.use("/api/food", foodRouter)
 app.use("/api/auth", authRouter)
 app.use("/api/reviews", reviewRouter)
+app.use("/api/recommendations", recommendationRouter)
 app.use("/images", express.static("uploads"))
 
 // request the data from the server

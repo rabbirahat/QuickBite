@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { StoreContext } from '../../context/StoreContext'
 import { assets } from '../../assets/assets'
 import { reviewAPI } from '../../utils/api'
+import Recommendations from '../Recommendations/Recommendations'
 import './FoodDetail.css'
 
 const FoodDetail = () => {
@@ -473,6 +474,9 @@ const FoodDetail = () => {
             )}
           </div>
         </div>
+
+        {/* Recommendations Section */}
+        <Recommendations topN={6} />
       </div>
     </div>
   )

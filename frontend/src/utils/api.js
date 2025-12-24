@@ -107,5 +107,19 @@ export const reviewAPI = {
     }
 };
 
+// Recommendation API
+export const recommendationAPI = {
+    getMyRecommendations: async (topN = 10) => {
+        return apiRequest(`/recommendations/me?topN=${topN}`, {
+            method: 'GET'
+        });
+    },
+    getUserRecommendations: async (userId, topN = 10) => {
+        return apiRequest(`/recommendations/${userId}?topN=${topN}`, {
+            method: 'GET'
+        });
+    }
+};
+
 export default apiRequest;
 

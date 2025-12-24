@@ -68,7 +68,7 @@ function buildRatingMatrix(reviews, users, foods) {
 export const getUserRecommendations = async (req, res) => {
   try {
     const { userId } = req.params;
-    const topN = parseInt(req.query.topN) || 10; // Number of recommendations
+    const topN = parseInt(req.query.topN) || 5; // Number of recommendations
 
     // Validate user ID
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -110,11 +110,12 @@ export const getUserRecommendations = async (req, res) => {
       allFoods.map((f) => f._id.toString())
     );
 
-    // Perform NMF
-    const k = Math.min(20, Math.floor(Math.sqrt(Math.min(uniqueUserIds.length, allFoods.length))));
-    console.log(`Performing NMF with k=${k} factors...`);
+    // Perform NMF - use smaller k for sparse data
+    const k = Math.min(10, Math.max(2, Math.floor(Math.sqrt(Math.min(uniqueUserIds.length, allFoods.length)))));
+    console.log(`Performing NMF with k=${k} factors for ${uniqueUserIds.length} users and ${allFoods.length} items...`);
     
-    const { W, H } = performNMF(matrix, k, 100, 0.001);
+    const { W, H, error } = performNMF(matrix, k, 200, 0.0001);
+    console.log(`NMF completed with final error: ${error.toFixed(4)}`);
 
     // Get user index
     const userIndex = userIndexMap.get(userId);
@@ -171,7 +172,7 @@ export const getUserRecommendations = async (req, res) => {
 export const getMyRecommendations = async (req, res) => {
   try {
     const userId = req.user._id.toString();
-    const topN = parseInt(req.query.topN) || 10;
+    const topN = parseInt(req.query.topN) || 5;
 
     // Fetch all reviews, users, and foods
     const reviews = await reviewModel.find({}).lean();
@@ -205,17 +206,25 @@ export const getMyRecommendations = async (req, res) => {
       allFoods.map((f) => f._id.toString())
     );
 
-    // Perform NMF
-    const k = Math.min(20, Math.floor(Math.sqrt(Math.min(uniqueUserIds.length, allFoods.length))));
-    console.log(`Performing NMF with k=${k} factors for user ${userId}...`);
+    // Perform NMF - use smaller k for sparse data
+    const k = Math.min(10, Math.max(2, Math.floor(Math.sqrt(Math.min(uniqueUserIds.length, allFoods.length)))));
+    console.log(`Performing NMF with k=${k} factors for ${uniqueUserIds.length} users and ${allFoods.length} items (user: ${userId})...`);
     
-    const { W, H } = performNMF(matrix, k, 100, 0.001);
+    const { W, H, error } = performNMF(matrix, k, 200, 0.0001);
+    console.log(`NMF completed with final error: ${error.toFixed(4)}`);
 
     // Get user index
     const userIndex = userIndexMap.get(userId);
 
     // Predict ratings for this user
     const predictedRatings = predictUserRatings(W, H, userIndex);
+    
+    // Debug: Log some predictions
+    if (predictedRatings.length > 0) {
+      const maxPred = Math.max(...predictedRatings);
+      const minPred = Math.min(...predictedRatings.filter(r => r > 0));
+      console.log(`User ${userId} predictions: max=${maxPred.toFixed(2)}, min=${minPred.toFixed(2)}, non-zero count=${predictedRatings.filter(r => r > 0).length}`);
+    }
 
     // Get items the user has already rated
     const userReviews = reviews.filter((r) => r.user.toString() === userId);
@@ -232,6 +241,8 @@ export const getMyRecommendations = async (req, res) => {
       ratedItemIndices,
       topN
     );
+    
+    console.log(`Found ${topRecommendations.length} recommendations for user ${userId}`);
 
     // Map recommendations to actual food items
     const recommendations = topRecommendations.map((rec) => {

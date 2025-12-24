@@ -11,12 +11,12 @@ const Cart = () => {
   const cartList = useMemo(
     () =>
       food_list
-        .filter((item) => cartItems[item._id] > 0)
+        .filter((item) => item && item._id && cartItems[item._id] > 0)
         .map((item) => ({
           id: item._id,
-          name: item.name,
-          price: item.price,
-          image: item.image,
+          name: item.name || 'Unknown Item',
+          price: item.price || 0,
+          image: item.image || '',
           quantity: cartItems[item._id],
         })),
     [food_list, cartItems]

@@ -4,7 +4,7 @@ import { recommendationAPI } from '../../utils/api'
 import FoodItem from '../FoodItem/FoodItem'
 import './Recommendations.css'
 
-const Recommendations = ({ topN = 10 }) => {
+const Recommendations = ({ topN = 5 }) => {
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

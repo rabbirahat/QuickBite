@@ -13,13 +13,15 @@
 
 /**
  * Initialize a matrix with random values between 0 and 1
+ * Better initialization for sparse matrices
  */
 function initializeMatrix(rows, cols) {
   const matrix = [];
   for (let i = 0; i < rows; i++) {
     matrix[i] = [];
     for (let j = 0; j < cols; j++) {
-      matrix[i][j] = Math.random() * 0.1 + 0.01; // Small random values
+      // Use slightly larger initial values to help with sparse data
+      matrix[i][j] = Math.random() * 0.5 + 0.1; // Range: 0.1 to 0.6
     }
   }
   return matrix;
@@ -104,9 +106,35 @@ export function performNMF(ratingMatrix, k = 20, maxIterations = 100, tolerance 
   const numUsers = ratingMatrix.length;
   const numItems = ratingMatrix[0].length;
 
-  // Initialize W (users x k) and H (k x items) with small random values
+  // Calculate average rating for better initialization
+  let totalRatings = 0;
+  let countRatings = 0;
+  for (let i = 0; i < numUsers; i++) {
+    for (let j = 0; j < numItems; j++) {
+      if (ratingMatrix[i][j] > 0) {
+        totalRatings += ratingMatrix[i][j];
+        countRatings++;
+      }
+    }
+  }
+  const avgRating = countRatings > 0 ? totalRatings / countRatings : 2.5;
+
+  // Initialize W (users x k) and H (k x items) with values based on average rating
   let W = initializeMatrix(numUsers, k);
   let H = initializeMatrix(k, numItems);
+  
+  // Scale initialization based on average rating
+  const scale = Math.sqrt(avgRating / k);
+  for (let i = 0; i < numUsers; i++) {
+    for (let j = 0; j < k; j++) {
+      W[i][j] *= scale;
+    }
+  }
+  for (let i = 0; i < k; i++) {
+    for (let j = 0; j < numItems; j++) {
+      H[i][j] *= scale;
+    }
+  }
 
   let previousError = Infinity;
 
@@ -128,9 +156,20 @@ export function performNMF(ratingMatrix, k = 20, maxIterations = 100, tolerance 
     const WUpdate = elementWiseDivide(RHT, WHHT);
     W = elementWiseMultiply(W, WUpdate);
 
-    // Calculate reconstruction error
+    // Calculate reconstruction error (only on non-zero entries for sparse matrices)
     const reconstructed = multiplyMatrices(W, H);
-    const error = calculateError(ratingMatrix, reconstructed);
+    let error = 0;
+    let errorCount = 0;
+    for (let i = 0; i < numUsers; i++) {
+      for (let j = 0; j < numItems; j++) {
+        if (ratingMatrix[i][j] > 0) {
+          const diff = ratingMatrix[i][j] - reconstructed[i][j];
+          error += diff * diff;
+          errorCount++;
+        }
+      }
+    }
+    error = errorCount > 0 ? Math.sqrt(error / errorCount) : 0;
 
     // Check for convergence
     if (Math.abs(previousError - error) < tolerance) {
@@ -174,14 +213,23 @@ function transposeMatrix(matrix) {
  * @returns {Array} Predicted ratings for all items
  */
 export function predictUserRatings(W, H, userId) {
+  if (!W[userId] || !H || H.length === 0) {
+    console.error('Invalid W or H matrix for prediction');
+    return [];
+  }
+
   const userPreferences = W[userId];
   const predictedRatings = [];
   
   for (let itemId = 0; itemId < H[0].length; itemId++) {
     let rating = 0;
     for (let factor = 0; factor < userPreferences.length; factor++) {
-      rating += userPreferences[factor] * H[factor][itemId];
+      if (H[factor] && H[factor][itemId] !== undefined) {
+        rating += userPreferences[factor] * H[factor][itemId];
+      }
     }
+    // Ensure rating is in valid range and not NaN
+    rating = isNaN(rating) ? 0 : rating;
     predictedRatings[itemId] = Math.min(5, Math.max(0, rating)); // Clamp to 0-5
   }
   

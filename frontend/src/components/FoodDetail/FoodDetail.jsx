@@ -476,7 +476,7 @@ const FoodDetail = () => {
         </div>
 
         {/* Recommendations Section */}
-        <Recommendations topN={6} />
+        <Recommendations topN={5} />
       </div>
     </div>
   )

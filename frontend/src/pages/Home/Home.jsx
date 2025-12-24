@@ -28,7 +28,7 @@ const Home = () => {
     <div>
       <Header/>
       <ExploreMenu category={category} setCategory={setCategory}/>
-      <Recommendations topN={10} />
+      <Recommendations topN={5} />
       <FoodDisplay category={category}/>
     </div>
   )

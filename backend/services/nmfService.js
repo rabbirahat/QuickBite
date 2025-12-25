@@ -118,6 +118,8 @@ export function performNMF(ratingMatrix, k = 20, maxIterations = 100, tolerance 
     }
   }
   const avgRating = countRatings > 0 ? totalRatings / countRatings : 2.5;
+  
+  console.log(`NMF Input: ${numUsers} users, ${numItems} items, ${countRatings} ratings, avg=${avgRating.toFixed(2)}`);
 
   // Initialize W (users x k) and H (k x items) with values based on average rating
   let W = initializeMatrix(numUsers, k);
@@ -125,6 +127,7 @@ export function performNMF(ratingMatrix, k = 20, maxIterations = 100, tolerance 
   
   // Scale initialization based on average rating
   const scale = Math.sqrt(avgRating / k);
+  console.log(`NMF Initialization scale: ${scale.toFixed(4)}`);
   for (let i = 0; i < numUsers; i++) {
     for (let j = 0; j < k; j++) {
       W[i][j] *= scale;
@@ -135,6 +138,22 @@ export function performNMF(ratingMatrix, k = 20, maxIterations = 100, tolerance 
       H[i][j] *= scale;
     }
   }
+  
+  // Verify initial reconstruction
+  const initialRecon = multiplyMatrices(W, H);
+  let initialError = 0;
+  let initialCount = 0;
+  for (let i = 0; i < numUsers; i++) {
+    for (let j = 0; j < numItems; j++) {
+      if (ratingMatrix[i][j] > 0) {
+        const diff = ratingMatrix[i][j] - initialRecon[i][j];
+        initialError += diff * diff;
+        initialCount++;
+      }
+    }
+  }
+  initialError = initialCount > 0 ? Math.sqrt(initialError / initialCount) : 0;
+  console.log(`Initial reconstruction error: ${initialError.toFixed(4)}`);
 
   let previousError = Infinity;
 
@@ -185,6 +204,21 @@ export function performNMF(ratingMatrix, k = 20, maxIterations = 100, tolerance 
     }
   }
 
+  // Verify final reconstruction quality
+  const finalRecon = multiplyMatrices(W, H);
+  let samplePredictions = [];
+  for (let i = 0; i < Math.min(3, numUsers); i++) {
+    for (let j = 0; j < Math.min(5, numItems); j++) {
+      if (ratingMatrix[i][j] > 0) {
+        samplePredictions.push({
+          actual: ratingMatrix[i][j],
+          predicted: finalRecon[i][j].toFixed(2)
+        });
+      }
+    }
+  }
+  console.log(`Sample predictions (actual vs predicted):`, samplePredictions.slice(0, 5));
+
   return { W, H, error: previousError };
 }
 
@@ -221,6 +255,11 @@ export function predictUserRatings(W, H, userId) {
   const userPreferences = W[userId];
   const predictedRatings = [];
   
+  // Debug: Log user preferences
+  const prefSum = userPreferences.reduce((a, b) => a + b, 0);
+  const prefMax = Math.max(...userPreferences);
+  console.log(`User ${userId} preferences: sum=${prefSum.toFixed(4)}, max=${prefMax.toFixed(4)}, factors=${userPreferences.length}`);
+  
   for (let itemId = 0; itemId < H[0].length; itemId++) {
     let rating = 0;
     for (let factor = 0; factor < userPreferences.length; factor++) {
@@ -232,6 +271,12 @@ export function predictUserRatings(W, H, userId) {
     rating = isNaN(rating) ? 0 : rating;
     predictedRatings[itemId] = Math.min(5, Math.max(0, rating)); // Clamp to 0-5
   }
+  
+  // Debug: Log prediction statistics
+  const predSum = predictedRatings.reduce((a, b) => a + b, 0);
+  const predMax = Math.max(...predictedRatings);
+  const predNonZero = predictedRatings.filter(r => r > 0.01).length;
+  console.log(`Predictions for user ${userId}: sum=${predSum.toFixed(2)}, max=${predMax.toFixed(2)}, non-zero=${predNonZero}/${predictedRatings.length}`);
   
   return predictedRatings;
 }

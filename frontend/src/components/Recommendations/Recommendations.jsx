@@ -115,7 +115,9 @@ const Recommendations = ({ topN = 5 }) => {
             <div className="predicted-rating-badge">
               <span className="predicted-rating-label">Predicted Rating:</span>
               <span className="predicted-rating-value">
-                {rec.predictedRating.toFixed(1)} ⭐
+                {rec.predictedRating && rec.predictedRating > 0 
+                  ? `${rec.predictedRating.toFixed(1)} ⭐` 
+                  : 'N/A'}
               </span>
             </div>
           </div>

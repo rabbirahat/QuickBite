@@ -39,6 +39,7 @@ function buildRatingMatrix(reviews, users, foods) {
   }
 
   // Fill matrix with ratings
+  let ratingCount = 0;
   reviews.forEach((review) => {
     const userId = review.user.toString();
     const foodId = review.food.toString();
@@ -48,8 +49,13 @@ function buildRatingMatrix(reviews, users, foods) {
     if (userIdx !== undefined && itemIdx !== undefined) {
       // Use the main rating (1-5 stars)
       matrix[userIdx][itemIdx] = review.rating;
+      ratingCount++;
+    } else {
+      console.warn(`Skipping review: userIdx=${userIdx}, itemIdx=${itemIdx} for userId=${userId}, foodId=${foodId}`);
     }
   });
+
+  console.log(`Built rating matrix: ${numUsers} users × ${numItems} items, ${ratingCount} ratings filled`);
 
   return {
     matrix,
@@ -122,6 +128,18 @@ export const getUserRecommendations = async (req, res) => {
 
     // Predict ratings for this user
     const predictedRatings = predictUserRatings(W, H, userIndex);
+    
+    // Debug: Log some predictions
+    if (predictedRatings.length > 0) {
+      const maxPred = Math.max(...predictedRatings);
+      const minPred = predictedRatings.filter(r => r > 0).length > 0 
+        ? Math.min(...predictedRatings.filter(r => r > 0))
+        : 0;
+      const nonZeroCount = predictedRatings.filter(r => r > 0).length;
+      const avgPred = predictedRatings.reduce((a, b) => a + b, 0) / predictedRatings.length;
+      console.log(`User ${userId} predictions: max=${maxPred.toFixed(2)}, min=${minPred.toFixed(2)}, avg=${avgPred.toFixed(2)}, non-zero count=${nonZeroCount}`);
+      console.log(`First 5 predictions: [${predictedRatings.slice(0, 5).map(r => r.toFixed(2)).join(', ')}]`);
+    }
 
     // Get items the user has already rated
     const userReviews = reviews.filter((r) => r.user.toString() === userId);
@@ -132,12 +150,41 @@ export const getUserRecommendations = async (req, res) => {
       }).filter((idx) => idx !== undefined)
     );
 
+    console.log(`User ${userId} has rated ${ratedItemIndices.size} items`);
+
     // Get top recommendations
-    const topRecommendations = getTopRecommendations(
+    let topRecommendations = getTopRecommendations(
       predictedRatings,
       ratedItemIndices,
       topN
     );
+    
+    // If all predictions are zero or very small, use popularity-based fallback
+    if (topRecommendations.length > 0) {
+      const maxRating = Math.max(...topRecommendations.map(r => r.predictedRating));
+      if (maxRating < 0.1) {
+        console.log(`WARNING: All predictions are near zero (max=${maxRating.toFixed(4)}). Using popularity fallback.`);
+        // Fallback: recommend items with most ratings from other users
+        const itemRatingCounts = {};
+        reviews.forEach((r) => {
+          const foodId = r.food.toString();
+          const itemIdx = itemIndexMap.get(foodId);
+          if (itemIdx !== undefined && !ratedItemIndices.has(itemIdx)) {
+            itemRatingCounts[itemIdx] = (itemRatingCounts[itemIdx] || 0) + 1;
+          }
+        });
+        
+        topRecommendations = Object.entries(itemRatingCounts)
+          .map(([idx, count]) => ({
+            itemIndex: parseInt(idx),
+            predictedRating: Math.min(5, 2.5 + (count * 0.1)) // Scale popularity to 2.5-5 range
+          }))
+          .sort((a, b) => b.predictedRating - a.predictedRating)
+          .slice(0, topN);
+        
+        console.log(`Using popularity fallback: ${topRecommendations.length} items`);
+      }
+    }
 
     // Map recommendations to actual food items
     const recommendations = topRecommendations.map((rec) => {
@@ -149,6 +196,11 @@ export const getUserRecommendations = async (req, res) => {
         itemIndex: rec.itemIndex
       };
     }).filter((rec) => rec.food !== undefined); // Filter out any missing foods
+    
+    console.log(`Final recommendations for user ${userId}: ${recommendations.length} items`);
+    if (recommendations.length > 0) {
+      console.log(`Recommendations: ${recommendations.map(r => `${r.food.name} (${r.predictedRating.toFixed(2)})`).join(', ')}`);
+    }
 
     res.json({
       success: true,
@@ -222,8 +274,13 @@ export const getMyRecommendations = async (req, res) => {
     // Debug: Log some predictions
     if (predictedRatings.length > 0) {
       const maxPred = Math.max(...predictedRatings);
-      const minPred = Math.min(...predictedRatings.filter(r => r > 0));
-      console.log(`User ${userId} predictions: max=${maxPred.toFixed(2)}, min=${minPred.toFixed(2)}, non-zero count=${predictedRatings.filter(r => r > 0).length}`);
+      const minPred = predictedRatings.filter(r => r > 0).length > 0 
+        ? Math.min(...predictedRatings.filter(r => r > 0))
+        : 0;
+      const nonZeroCount = predictedRatings.filter(r => r > 0).length;
+      const avgPred = predictedRatings.reduce((a, b) => a + b, 0) / predictedRatings.length;
+      console.log(`User ${userId} predictions: max=${maxPred.toFixed(2)}, min=${minPred.toFixed(2)}, avg=${avgPred.toFixed(2)}, non-zero count=${nonZeroCount}`);
+      console.log(`First 5 predictions: [${predictedRatings.slice(0, 5).map(r => r.toFixed(2)).join(', ')}]`);
     }
 
     // Get items the user has already rated
@@ -235,14 +292,46 @@ export const getMyRecommendations = async (req, res) => {
       }).filter((idx) => idx !== undefined)
     );
 
+    console.log(`User ${userId} has rated ${ratedItemIndices.size} items`);
+
     // Get top recommendations
-    const topRecommendations = getTopRecommendations(
+    let topRecommendations = getTopRecommendations(
       predictedRatings,
       ratedItemIndices,
       topN
     );
     
+    // If all predictions are zero or very small, use popularity-based fallback
+    if (topRecommendations.length > 0) {
+      const maxRating = Math.max(...topRecommendations.map(r => r.predictedRating));
+      if (maxRating < 0.1) {
+        console.log(`WARNING: All predictions are near zero (max=${maxRating.toFixed(4)}). Using popularity fallback.`);
+        // Fallback: recommend items with most ratings from other users
+        const itemRatingCounts = {};
+        reviews.forEach((r) => {
+          const foodId = r.food.toString();
+          const itemIdx = itemIndexMap.get(foodId);
+          if (itemIdx !== undefined && !ratedItemIndices.has(itemIdx)) {
+            itemRatingCounts[itemIdx] = (itemRatingCounts[itemIdx] || 0) + 1;
+          }
+        });
+        
+        topRecommendations = Object.entries(itemRatingCounts)
+          .map(([idx, count]) => ({
+            itemIndex: parseInt(idx),
+            predictedRating: Math.min(5, 2.5 + (count * 0.1)) // Scale popularity to 2.5-5 range
+          }))
+          .sort((a, b) => b.predictedRating - a.predictedRating)
+          .slice(0, topN);
+        
+        console.log(`Using popularity fallback: ${topRecommendations.length} items`);
+      }
+    }
+    
     console.log(`Found ${topRecommendations.length} recommendations for user ${userId}`);
+    if (topRecommendations.length > 0) {
+      console.log(`Top recommendation: item ${topRecommendations[0].itemIndex} with rating ${topRecommendations[0].predictedRating.toFixed(2)}`);
+    }
 
     // Map recommendations to actual food items
     const recommendations = topRecommendations.map((rec) => {

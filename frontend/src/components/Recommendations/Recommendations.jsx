@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { recommendationAPI } from '../../utils/api'
 import FoodItem from '../FoodItem/FoodItem'
+import { food_list as static_food_list } from '../../assets/assets'
 import './Recommendations.css'
 
 const Recommendations = ({ topN = 5 }) => {
@@ -33,14 +34,23 @@ const Recommendations = ({ topN = 5 }) => {
       setError('')
       try {
         const response = await recommendationAPI.getMyRecommendations(topN)
-        if (response.success && response.data) {
-          setRecommendations(response.data)
+        console.log('Recommendations API response:', response)
+        if (response.success) {
+          if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+            setRecommendations(response.data)
+            console.log(`Loaded ${response.data.length} recommendations`)
+          } else {
+            setError(response.message || 'No recommendations available. Try rating more foods!')
+            setRecommendations([])
+          }
         } else {
           setError(response.message || 'No recommendations available')
+          setRecommendations([])
         }
       } catch (err) {
         console.error('Error fetching recommendations:', err)
         setError(err.message || 'Failed to load recommendations')
+        setRecommendations([])
       } finally {
         setLoading(false)
       }
@@ -103,15 +113,22 @@ const Recommendations = ({ topN = 5 }) => {
         </span>
       </h2>
       <div className="recommendations-list">
-        {recommendations.map((rec, index) => (
-          <div key={rec.food._id || index} className="recommendation-item-wrapper">
-            <FoodItem
-              id={rec.food._id}
-              name={rec.food.name}
-              description={rec.food.description}
-              price={rec.food.price}
-              image={rec.food.image}
-            />
+        {recommendations.map((rec, index) => {
+          // If food is from static list (ID is "1", "2", "3", etc.), get image from static list
+          const staticFood = static_food_list.find(f => f._id === rec.food._id);
+          const foodImage = staticFood?.image || rec.food.image || '';
+          const foodDescription = staticFood?.description || rec.food.description || '';
+          const foodPrice = staticFood?.price || rec.food.price || 0;
+          
+          return (
+            <div key={rec.food._id || index} className="recommendation-item-wrapper">
+              <FoodItem
+                id={rec.food._id}
+                name={rec.food.name}
+                description={foodDescription}
+                price={foodPrice}
+                image={foodImage}
+              />
             <div className="predicted-rating-badge">
               <span className="predicted-rating-label">Predicted Rating:</span>
               <span className="predicted-rating-value">
@@ -121,7 +138,8 @@ const Recommendations = ({ topN = 5 }) => {
               </span>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   )

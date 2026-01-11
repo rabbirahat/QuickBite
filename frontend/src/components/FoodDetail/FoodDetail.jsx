@@ -266,217 +266,221 @@ const FoodDetail = () => {
           </div>
         </div>
 
-        {/* Reviews Section */}
-        <div className="reviews-section">
-          <h2 className="reviews-title">Customer Reviews ({reviews.length})</h2>
-          {reviewError && <div className="error-message review-error">{reviewError}</div>}
-          
-          {/* Review Form */}
-          <div className="review-form-container">
-            <h3 className="review-form-title">
-              {editingReviewId ? 'Edit your review' : 'Write a Review'}
-            </h3>
-            {!isAuthenticated ? (
-              <p className="login-to-review">
-                Please login to leave a review.
-              </p>
-            ) : (
-              <form onSubmit={handleSubmitReview} className="review-form">
-                <div className="form-group">
-                  <label htmlFor="reviewerName">Name</label>
-                  <input
-                    id="reviewerName"
-                    type="text"
-                    value={currentUser?.name || ''}
-                    disabled
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="reviewRating">Rating</label>
-                  <select
-                    id="reviewRating"
-                    value={reviewRating}
-                    onChange={(e) => setReviewRating(Number(e.target.value))}
-                  >
-                    <option value={5}>⭐⭐⭐⭐⭐ (5 stars)</option>
-                    <option value={4}>⭐⭐⭐⭐ (4 stars)</option>
-                    <option value={3}>⭐⭐⭐ (3 stars)</option>
-                    <option value={2}>⭐⭐ (2 stars)</option>
-                    <option value={1}>⭐ (1 star)</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="qualityRating">Quality Rating (1-5)</label>
-                  <select
-                    id="qualityRating"
-                    value={qualityRating}
-                    onChange={(e) => setQualityRating(e.target.value)}
-                    required
-                  >
-                    <option value="">Select quality rating</option>
-                    <option value="1">1 - Poor</option>
-                    <option value="2">2 - Below Average</option>
-                    <option value="3">3 - Average</option>
-                    <option value="4">4 - Good</option>
-                    <option value="5">5 - Excellent</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="categoryRating">Category Rating (1-5)</label>
-                  <select
-                    id="categoryRating"
-                    value={categoryRating}
-                    onChange={(e) => setCategoryRating(e.target.value)}
-                    required
-                  >
-                    <option value="">Select category rating</option>
-                    <option value="1">1 - Very Bad</option>
-                    <option value="2">2 - Bad</option>
-                    <option value="3">3 - Average</option>
-                    <option value="4">4 - Good</option>
-                    <option value="5">5 - Very Good</option>
-                  </select>
-                  <small className="form-hint">1-2: Bad, 3: Average, 4-5: Good</small>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="priceSatisfaction">Price Satisfaction (1-5)</label>
-                  <select
-                    id="priceSatisfaction"
-                    value={priceSatisfaction}
-                    onChange={(e) => setPriceSatisfaction(e.target.value)}
-                    required
-                  >
-                    <option value="">Select price satisfaction</option>
-                    <option value="1">1 - Very Unsatisfied</option>
-                    <option value="2">2 - Unsatisfied</option>
-                    <option value="3">3 - Neutral</option>
-                    <option value="4">4 - Satisfied</option>
-                    <option value="5">5 - Very Satisfied</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="reviewComment">Your Review</label>
-                  <textarea
-                    id="reviewComment"
-                    value={reviewComment}
-                    onChange={(e) => setReviewComment(e.target.value)}
-                    placeholder="Share your experience with this dish..."
-                    rows="4"
-                    required
-                  />
-                </div>
-
-                <div className="review-form-actions">
-                  {editingReviewId && (
-                    <button
-                      type="button"
-                      className="cancel-edit-btn"
-                      onClick={() => {
-                        setEditingReviewId(null)
-                        setReviewRating(5)
-                        setReviewComment('')
-                        setQualityRating('')
-                        setCategoryRating('')
-                        setPriceSatisfaction('')
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  )}
-                  <button type="submit" className="submit-review-btn" disabled={isSubmittingReview}>
-                    {isSubmittingReview
-                      ? 'Saving...'
-                      : editingReviewId
-                        ? 'Update Review'
-                        : 'Submit Review'}
-                  </button>
-                </div>
-
-                {showReviewSuccess && (
-                  <div className="success-message">
-                    ✓ Review saved successfully!
+        {/* Reviews and Recommendations Section */}
+        <div className="reviews-recommendations-wrapper">
+          <div className="reviews-section">
+            <h2 className="reviews-title">Customer Reviews ({reviews.length})</h2>
+            {reviewError && <div className="error-message review-error">{reviewError}</div>}
+            
+            {/* Review Form */}
+            <div className="review-form-container">
+              <h3 className="review-form-title">
+                {editingReviewId ? 'Edit your review' : 'Write a Review'}
+              </h3>
+              {!isAuthenticated ? (
+                <p className="login-to-review">
+                  Please login to leave a review.
+                </p>
+              ) : (
+                <form onSubmit={handleSubmitReview} className="review-form">
+                  <div className="form-group">
+                    <label htmlFor="reviewerName">Name</label>
+                    <input
+                      id="reviewerName"
+                      type="text"
+                      value={currentUser?.name || ''}
+                      disabled
+                    />
                   </div>
-                )}
-              </form>
-            )}
+                  <div className="form-group">
+                    <label htmlFor="reviewRating">Rating</label>
+                    <select
+                      id="reviewRating"
+                      value={reviewRating}
+                      onChange={(e) => setReviewRating(Number(e.target.value))}
+                    >
+                      <option value={5}>⭐⭐⭐⭐⭐ (5 stars)</option>
+                      <option value={4}>⭐⭐⭐⭐ (4 stars)</option>
+                      <option value={3}>⭐⭐⭐ (3 stars)</option>
+                      <option value={2}>⭐⭐ (2 stars)</option>
+                      <option value={1}>⭐ (1 star)</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="qualityRating">Quality Rating (1-5)</label>
+                    <select
+                      id="qualityRating"
+                      value={qualityRating}
+                      onChange={(e) => setQualityRating(e.target.value)}
+                      required
+                    >
+                      <option value="">Select quality rating</option>
+                      <option value="1">1 - Poor</option>
+                      <option value="2">2 - Below Average</option>
+                      <option value="3">3 - Average</option>
+                      <option value="4">4 - Good</option>
+                      <option value="5">5 - Excellent</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="categoryRating">Category Rating (1-5)</label>
+                    <select
+                      id="categoryRating"
+                      value={categoryRating}
+                      onChange={(e) => setCategoryRating(e.target.value)}
+                      required
+                    >
+                      <option value="">Select category rating</option>
+                      <option value="1">1 - Very Bad</option>
+                      <option value="2">2 - Bad</option>
+                      <option value="3">3 - Average</option>
+                      <option value="4">4 - Good</option>
+                      <option value="5">5 - Very Good</option>
+                    </select>
+                    <small className="form-hint">1-2: Bad, 3: Average, 4-5: Good</small>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="priceSatisfaction">Price Satisfaction (1-5)</label>
+                    <select
+                      id="priceSatisfaction"
+                      value={priceSatisfaction}
+                      onChange={(e) => setPriceSatisfaction(e.target.value)}
+                      required
+                    >
+                      <option value="">Select price satisfaction</option>
+                      <option value="1">1 - Very Unsatisfied</option>
+                      <option value="2">2 - Unsatisfied</option>
+                      <option value="3">3 - Neutral</option>
+                      <option value="4">4 - Satisfied</option>
+                      <option value="5">5 - Very Satisfied</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="reviewComment">Your Review</label>
+                    <textarea
+                      id="reviewComment"
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder="Share your experience with this dish..."
+                      rows="4"
+                      required
+                    />
+                  </div>
+
+                  <div className="review-form-actions">
+                    {editingReviewId && (
+                      <button
+                        type="button"
+                        className="cancel-edit-btn"
+                        onClick={() => {
+                          setEditingReviewId(null)
+                          setReviewRating(5)
+                          setReviewComment('')
+                          setQualityRating('')
+                          setCategoryRating('')
+                          setPriceSatisfaction('')
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    <button type="submit" className="submit-review-btn" disabled={isSubmittingReview}>
+                      {isSubmittingReview
+                        ? 'Saving...'
+                        : editingReviewId
+                          ? 'Update Review'
+                          : 'Submit Review'}
+                    </button>
+                  </div>
+
+                  {showReviewSuccess && (
+                    <div className="success-message">
+                      ✓ Review saved successfully!
+                    </div>
+                  )}
+                </form>
+              )}
+            </div>
+
+            {/* Reviews List */}
+            <div className="reviews-list">
+              {reviewsLoading ? (
+                <p className="no-reviews">Loading reviews...</p>
+              ) : reviews.length === 0 ? (
+                <p className="no-reviews">No reviews yet. Be the first to review this dish!</p>
+              ) : (
+                reviews.map((review) => (
+                  <div key={review._id} className="review-card">
+                    <div className="review-header">
+                      <div className="review-author">
+                        <div className="author-avatar">
+                          {(review.user?.name || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="author-name">{review.user?.name || 'User'}</p>
+                          <p className="review-date">
+                            {new Date(review.updatedAt || review.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="review-rating">
+                        {'⭐'.repeat(review.rating)}
+                      </div>
+                      {currentUser && review.user?._id === currentUser.id && (
+                        <div className="review-actions">
+                          <button
+                            type="button"
+                            className="edit-review-btn"
+                            onClick={() => handleStartEdit(review)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="delete-review-btn"
+                            onClick={() => handleDeleteReview(review._id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="review-comment">{review.comment}</p>
+                    <div className="review-extra-ratings">
+                      <div className="extra-rating-pill">
+                        <span className="pill-label">Quality</span>
+                        <span className="pill-value">
+                          {review.qualityRating ?? '-'} / 5
+                        </span>
+                      </div>
+                      <div className="extra-rating-pill">
+                        <span className="pill-label">Category</span>
+                        <span className="pill-value">
+                          {review.categoryRating ?? '-'} / 5
+                        </span>
+                      </div>
+                      <div className="extra-rating-pill">
+                        <span className="pill-label">Price</span>
+                        <span className="pill-value">
+                          {review.priceSatisfaction ?? '-'} / 5
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
-          {/* Reviews List */}
-          <div className="reviews-list">
-            {reviewsLoading ? (
-              <p className="no-reviews">Loading reviews...</p>
-            ) : reviews.length === 0 ? (
-              <p className="no-reviews">No reviews yet. Be the first to review this dish!</p>
-            ) : (
-              reviews.map((review) => (
-                <div key={review._id} className="review-card">
-                  <div className="review-header">
-                    <div className="review-author">
-                      <div className="author-avatar">
-                        {(review.user?.name || 'U').charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="author-name">{review.user?.name || 'User'}</p>
-                        <p className="review-date">
-                          {new Date(review.updatedAt || review.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="review-rating">
-                      {'⭐'.repeat(review.rating)}
-                    </div>
-                    {currentUser && review.user?._id === currentUser.id && (
-                      <div className="review-actions">
-                        <button
-                          type="button"
-                          className="edit-review-btn"
-                          onClick={() => handleStartEdit(review)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="delete-review-btn"
-                          onClick={() => handleDeleteReview(review._id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <p className="review-comment">{review.comment}</p>
-                  <div className="review-extra-ratings">
-                    <div className="extra-rating-pill">
-                      <span className="pill-label">Quality</span>
-                      <span className="pill-value">
-                        {review.qualityRating ?? '-'} / 5
-                      </span>
-                    </div>
-                    <div className="extra-rating-pill">
-                      <span className="pill-label">Category</span>
-                      <span className="pill-value">
-                        {review.categoryRating ?? '-'} / 5
-                      </span>
-                    </div>
-                    <div className="extra-rating-pill">
-                      <span className="pill-label">Price</span>
-                      <span className="pill-value">
-                        {review.priceSatisfaction ?? '-'} / 5
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+          {/* Recommendations Sidebar */}
+          <div className="recommendations-sidebar">
+            <Recommendations topN={5} />
           </div>
         </div>
-
-        {/* Recommendations Section */}
-        <Recommendations topN={5} />
       </div>
     </div>
   )

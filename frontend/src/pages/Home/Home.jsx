@@ -28,8 +28,14 @@ const Home = () => {
     <div>
       <Header/>
       <ExploreMenu category={category} setCategory={setCategory}/>
-      <Recommendations topN={5} />
-      <FoodDisplay category={category}/>
+      <div className="home-main-content">
+        <div className="home-main-section">
+          <FoodDisplay category={category}/>
+        </div>
+        <div className="home-sidebar-section">
+          <Recommendations topN={5} />
+        </div>
+      </div>
     </div>
   )
 }

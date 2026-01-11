@@ -223,11 +223,27 @@
   padding: 40px 20px;
 }
 
-/* Reviews Section */
-.reviews-section {
+/* Reviews and Recommendations Wrapper */
+.reviews-recommendations-wrapper {
+  display: flex;
+  gap: 30px;
   margin-top: 50px;
   padding-top: 40px;
   border-top: 2px solid #e9e9e9;
+  align-items: flex-start;
+}
+
+.recommendations-sidebar {
+  flex: 0 0 320px;
+  position: sticky;
+  top: 20px;
+  align-self: flex-start;
+}
+
+/* Reviews Section */
+.reviews-section {
+  flex: 1;
+  min-width: 0; /* Allows flex item to shrink below content size */
 }
 
 .reviews-title {
@@ -479,6 +495,20 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .reviews-recommendations-wrapper {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .recommendations-sidebar {
+    flex: 1;
+    position: static;
+    max-height: none;
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .product-detail-content {
     grid-template-columns: 1fr;
@@ -504,6 +534,10 @@
 
   .add-to-cart-btn {
     width: 100%;
+  }
+
+  .reviews-recommendations-wrapper {
+    gap: 20px;
   }
 
   .reviews-title {

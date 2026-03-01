@@ -109,7 +109,7 @@ const Recommendations = ({ topN = 5 }) => {
       <h2 className="recommendations-title">
         Recommended for You
         <span className="recommendations-subtitle">
-          Based on your ratings using AI-powered NMF algorithm
+          Based on your ratings using NMF algorithm
         </span>
       </h2>
       <div className="recommendations-list">

@@ -3,12 +3,48 @@
   padding: 0;
 }
 
+.recommendations-algo-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
 .recommendations-title {
   font-size: 24px;
   font-weight: 600;
   color: #333;
   margin-bottom: 10px;
   text-align: left;
+}
+
+.recommendations-algo-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-top: 20px;
+  margin-bottom: 6px;
+}
+
+.recommendations-algo-subtitle {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: #777;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.recommendations-block {
+  margin-top: 10px;
+  flex: 1;
+}
+
+.recommendations-note {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #888;
+  line-height: 1.4;
 }
 
 .recommendations-subtitle {

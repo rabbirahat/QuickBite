@@ -2,6 +2,7 @@ import reviewModel from "../models/reviewModel.js";
 import foodModel from "../models/foodModel.js";
 import userModel from "../models/userModel.js";
 import { performNMF, predictUserRatings, getTopRecommendations } from "../services/nmfService.js";
+import { predictUserRatingsKNN } from "../services/knnService.js";
 import mongoose from "mongoose";
 
 // Static food list mapping (for frontend static foods with IDs "1", "2", "3"...)
@@ -236,26 +237,30 @@ export const getUserRecommendations = async (req, res) => {
     const k = Math.min(10, Math.max(2, Math.floor(Math.sqrt(Math.min(uniqueUserIds.length, allFoods.length)))));
     console.log(`Performing NMF with k=${k} factors for ${uniqueUserIds.length} users and ${allFoods.length} items...`);
     
+    // === NMF-BASED RECOMMENDATIONS ===
     const { W, H, error } = performNMF(matrix, k, 200, 0.0001);
     console.log(`NMF completed with final error: ${error.toFixed(4)}`);
 
     // Get user index
     const userIndex = userIndexMap.get(userId);
 
-    // Predict ratings for this user
-    const predictedRatings = predictUserRatings(W, H, userIndex);
+    // Predict ratings for this user using NMF
+    const predictedRatingsNMF = predictUserRatings(W, H, userIndex);
     
-    // Debug: Log some predictions
-    if (predictedRatings.length > 0) {
-      const maxPred = Math.max(...predictedRatings);
-      const minPred = predictedRatings.filter(r => r > 0).length > 0 
-        ? Math.min(...predictedRatings.filter(r => r > 0))
+    // Debug: Log some predictions (NMF)
+    if (predictedRatingsNMF.length > 0) {
+      const maxPred = Math.max(...predictedRatingsNMF);
+      const minPred = predictedRatingsNMF.filter(r => r > 0).length > 0 
+        ? Math.min(...predictedRatingsNMF.filter(r => r > 0))
         : 0;
-      const nonZeroCount = predictedRatings.filter(r => r > 0).length;
-      const avgPred = predictedRatings.reduce((a, b) => a + b, 0) / predictedRatings.length;
-      console.log(`User ${userId} predictions: max=${maxPred.toFixed(2)}, min=${minPred.toFixed(2)}, avg=${avgPred.toFixed(2)}, non-zero count=${nonZeroCount}`);
-      console.log(`First 5 predictions: [${predictedRatings.slice(0, 5).map(r => r.toFixed(2)).join(', ')}]`);
+      const nonZeroCount = predictedRatingsNMF.filter(r => r > 0).length;
+      const avgPred = predictedRatingsNMF.reduce((a, b) => a + b, 0) / predictedRatingsNMF.length;
+      console.log(`[NMF] User ${userId} predictions: max=${maxPred.toFixed(2)}, min=${minPred.toFixed(2)}, avg=${avgPred.toFixed(2)}, non-zero count=${nonZeroCount}`);
+      console.log(`[NMF] First 5 predictions: [${predictedRatingsNMF.slice(0, 5).map(r => r.toFixed(2)).join(', ')}]`);
     }
+
+    // === USER-BASED kNN RECOMMENDATIONS ===
+    const predictedRatingsKNN = predictUserRatingsKNN(matrix, userIndex, 5);
 
     // Get items the user has already rated
     const userReviews = reviews.filter((r) => r.user.toString() === userId);
@@ -268,18 +273,24 @@ export const getUserRecommendations = async (req, res) => {
 
     console.log(`User ${userId} has rated ${ratedItemIndices.size} items`);
 
-    // Get top recommendations
-    let topRecommendations = getTopRecommendations(
-      predictedRatings,
+    // Get top recommendations from both algorithms
+    let topRecommendationsNMF = getTopRecommendations(
+      predictedRatingsNMF,
+      ratedItemIndices,
+      topN
+    );
+
+    let topRecommendationsKNN = getTopRecommendations(
+      predictedRatingsKNN,
       ratedItemIndices,
       topN
     );
     
-    // If all predictions are zero or very small, use popularity-based fallback
-    if (topRecommendations.length > 0) {
-      const maxRating = Math.max(...topRecommendations.map(r => r.predictedRating));
+    // If all NMF predictions are zero or very small, use popularity-based fallback
+    if (topRecommendationsNMF.length > 0) {
+      const maxRating = Math.max(...topRecommendationsNMF.map(r => r.predictedRating));
       if (maxRating < 0.1) {
-        console.log(`WARNING: All predictions are near zero (max=${maxRating.toFixed(4)}). Using popularity fallback.`);
+        console.log(`WARNING: All NMF predictions are near zero (max=${maxRating.toFixed(4)}). Using popularity fallback.`);
         // Fallback: recommend items with most ratings from other users
         const itemRatingCounts = {};
         reviews.forEach((r) => {
@@ -290,7 +301,7 @@ export const getUserRecommendations = async (req, res) => {
           }
         });
         
-        topRecommendations = Object.entries(itemRatingCounts)
+        topRecommendationsNMF = Object.entries(itemRatingCounts)
           .map(([idx, count]) => ({
             itemIndex: parseInt(idx),
             predictedRating: Math.min(5, 2.5 + (count * 0.1)) // Scale popularity to 2.5-5 range
@@ -298,20 +309,20 @@ export const getUserRecommendations = async (req, res) => {
           .sort((a, b) => b.predictedRating - a.predictedRating)
           .slice(0, topN);
         
-        console.log(`Using popularity fallback: ${topRecommendations.length} items`);
+        console.log(`Using popularity fallback for NMF: ${topRecommendationsNMF.length} items`);
       }
     }
 
-    console.log(`Found ${topRecommendations.length} recommendations for user ${userName}`);
-    if (topRecommendations.length > 0) {
-      const topFoodId = reverseItemMap[topRecommendations[0].itemIndex];
+    console.log(`Found ${topRecommendationsNMF.length} NMF recommendations for user ${userName}`);
+    if (topRecommendationsNMF.length > 0) {
+      const topFoodId = reverseItemMap[topRecommendationsNMF[0].itemIndex];
       const topFoodName = await getFoodName(topFoodId, allFoods);
-      console.log(`Top recommendation: ${topFoodName} with rating ${topRecommendations[0].predictedRating.toFixed(2)}`);
+      console.log(`[NMF] Top recommendation: ${topFoodName} with rating ${topRecommendationsNMF[0].predictedRating.toFixed(2)}`);
     }
 
     // Map recommendations to actual food items
-    const recommendations = await Promise.all(
-      topRecommendations.map(async (rec) => {
+    const nmfRecommendations = await Promise.all(
+      topRecommendationsNMF.map(async (rec) => {
         const foodId = reverseItemMap[rec.itemIndex];
         // Try to get food data from database or static list
         let food = await getFoodData(foodId, allFoods);
@@ -341,20 +352,59 @@ export const getUserRecommendations = async (req, res) => {
       })
     );
     
-    console.log(`Mapped ${recommendations.length} recommendations (before filtering)`);
+    console.log(`Mapped ${nmfRecommendations.length} NMF recommendations (before filtering)`);
     
     // Only filter out if food is completely invalid
-    const validRecommendations = recommendations.filter((rec) => rec.food && rec.food._id);
-    console.log(`Valid recommendations after filtering: ${validRecommendations.length}`);
+    const validNmfRecommendations = nmfRecommendations.filter((rec) => rec.food && rec.food._id);
+    console.log(`Valid NMF recommendations after filtering: ${validNmfRecommendations.length}`);
     
-    if (validRecommendations.length > 0) {
-      console.log(`Final Recommendations for ${userName}: ${validRecommendations.map(r => `${r.food.name} (${r.predictedRating.toFixed(2)})`).join(', ')}`);
+    if (validNmfRecommendations.length > 0) {
+      console.log(`[NMF] Final Recommendations for ${userName}: ${validNmfRecommendations.map(r => `${r.food.name} (${r.predictedRating.toFixed(2)})`).join(', ')}`);
+    }
+
+    // === Build KNN recommendations mapped to food objects (reuse same mapping logic) ===
+    const knnRecommendations = await Promise.all(
+      topRecommendationsKNN.map(async (rec) => {
+        const foodId = reverseItemMap[rec.itemIndex];
+        let food = await getFoodData(foodId, allFoods);
+        
+        if (!food) {
+          const foodName = await getFoodName(foodId, allFoods);
+          console.log(`[kNN] Food "${foodName}" (ID: ${foodId}) not found in database, using placeholder data`);
+          food = {
+            _id: foodId,
+            name: foodName,
+            price: 100,
+            description: "Recommended food",
+            image: "",
+            category: "Unknown"
+          };
+        } else {
+          console.log(`[kNN] Food "${food.name}" (ID: ${foodId}) found successfully`);
+        }
+        
+        return {
+          food: food,
+          predictedRating: parseFloat(rec.predictedRating.toFixed(2)),
+          itemIndex: rec.itemIndex
+        };
+      })
+    );
+
+    const validKnnRecommendations = knnRecommendations.filter((rec) => rec.food && rec.food._id);
+    console.log(`Valid kNN recommendations after filtering: ${validKnnRecommendations.length}`);
+
+    if (validKnnRecommendations.length > 0) {
+      console.log(`[kNN] Final Recommendations for ${userName}: ${validKnnRecommendations.map(r => `${r.food.name} (${r.predictedRating.toFixed(2)})`).join(', ')}`);
     }
 
     res.json({
       success: true,
-      message: `Generated ${validRecommendations.length} recommendations`,
-      data: validRecommendations,
+      message: `Generated ${validNmfRecommendations.length} NMF and ${validKnnRecommendations.length} kNN recommendations`,
+      data: {
+        nmf: validNmfRecommendations,
+        knn: validKnnRecommendations
+      },
     });
   } catch (error) {
     console.error("Error generating recommendations:", error);
@@ -437,20 +487,23 @@ export const getMyRecommendations = async (req, res) => {
     // Get user index
     const userIndex = userIndexMap.get(userId);
 
-    // Predict ratings for this user
-    const predictedRatings = predictUserRatings(W, H, userIndex);
+    // Predict ratings for this user using NMF
+    const predictedRatingsNMF = predictUserRatings(W, H, userIndex);
     
-    // Debug: Log some predictions
-    if (predictedRatings.length > 0) {
-      const maxPred = Math.max(...predictedRatings);
-      const minPred = predictedRatings.filter(r => r > 0).length > 0 
-        ? Math.min(...predictedRatings.filter(r => r > 0))
+    // Debug: Log some predictions (NMF)
+    if (predictedRatingsNMF.length > 0) {
+      const maxPred = Math.max(...predictedRatingsNMF);
+      const minPred = predictedRatingsNMF.filter(r => r > 0).length > 0 
+        ? Math.min(...predictedRatingsNMF.filter(r => r > 0))
         : 0;
-      const nonZeroCount = predictedRatings.filter(r => r > 0).length;
-      const avgPred = predictedRatings.reduce((a, b) => a + b, 0) / predictedRatings.length;
-      console.log(`User ${userId} predictions: max=${maxPred.toFixed(2)}, min=${minPred.toFixed(2)}, avg=${avgPred.toFixed(2)}, non-zero count=${nonZeroCount}`);
-      console.log(`First 5 predictions: [${predictedRatings.slice(0, 5).map(r => r.toFixed(2)).join(', ')}]`);
+      const nonZeroCount = predictedRatingsNMF.filter(r => r > 0).length;
+      const avgPred = predictedRatingsNMF.reduce((a, b) => a + b, 0) / predictedRatingsNMF.length;
+      console.log(`[NMF] User ${userId} predictions: max=${maxPred.toFixed(2)}, min=${minPred.toFixed(2)}, avg=${avgPred.toFixed(2)}, non-zero count=${nonZeroCount}`);
+      console.log(`[NMF] First 5 predictions: [${predictedRatingsNMF.slice(0, 5).map(r => r.toFixed(2)).join(', ')}]`);
     }
+
+    // === USER-BASED kNN RECOMMENDATIONS ===
+    const predictedRatingsKNN = predictUserRatingsKNN(matrix, userIndex, 5);
 
     // Get items the user has already rated
     const userReviews = reviews.filter((r) => r.user.toString() === userId);
@@ -463,18 +516,24 @@ export const getMyRecommendations = async (req, res) => {
 
     console.log(`User ${userId} has rated ${ratedItemIndices.size} items`);
 
-    // Get top recommendations
-    let topRecommendations = getTopRecommendations(
-      predictedRatings,
+    // Get top recommendations from both algorithms
+    let topRecommendationsNMF = getTopRecommendations(
+      predictedRatingsNMF,
+      ratedItemIndices,
+      topN
+    );
+
+    let topRecommendationsKNN = getTopRecommendations(
+      predictedRatingsKNN,
       ratedItemIndices,
       topN
     );
     
-    // If all predictions are zero or very small, use popularity-based fallback
-    if (topRecommendations.length > 0) {
-      const maxRating = Math.max(...topRecommendations.map(r => r.predictedRating));
+    // If all NMF predictions are zero or very small, use popularity-based fallback
+    if (topRecommendationsNMF.length > 0) {
+      const maxRating = Math.max(...topRecommendationsNMF.map(r => r.predictedRating));
       if (maxRating < 0.1) {
-        console.log(`WARNING: All predictions are near zero (max=${maxRating.toFixed(4)}). Using popularity fallback.`);
+        console.log(`WARNING: All NMF predictions are near zero (max=${maxRating.toFixed(4)}). Using popularity fallback.`);
         // Fallback: recommend items with most ratings from other users
         const itemRatingCounts = {};
         reviews.forEach((r) => {
@@ -485,7 +544,7 @@ export const getMyRecommendations = async (req, res) => {
           }
         });
         
-        topRecommendations = Object.entries(itemRatingCounts)
+        topRecommendationsNMF = Object.entries(itemRatingCounts)
           .map(([idx, count]) => ({
             itemIndex: parseInt(idx),
             predictedRating: Math.min(5, 2.5 + (count * 0.1)) // Scale popularity to 2.5-5 range
@@ -493,20 +552,20 @@ export const getMyRecommendations = async (req, res) => {
           .sort((a, b) => b.predictedRating - a.predictedRating)
           .slice(0, topN);
         
-        console.log(`Using popularity fallback: ${topRecommendations.length} items`);
+        console.log(`Using popularity fallback for NMF: ${topRecommendationsNMF.length} items`);
       }
     }
     
-    console.log(`Found ${topRecommendations.length} recommendations for user ${userName}`);
-    if (topRecommendations.length > 0) {
-      const topFoodId = reverseItemMap[topRecommendations[0].itemIndex];
+    console.log(`Found ${topRecommendationsNMF.length} NMF recommendations for user ${userName}`);
+    if (topRecommendationsNMF.length > 0) {
+      const topFoodId = reverseItemMap[topRecommendationsNMF[0].itemIndex];
       const topFoodName = await getFoodName(topFoodId, allFoods);
-      console.log(`Top recommendation: ${topFoodName} with rating ${topRecommendations[0].predictedRating.toFixed(2)}`);
+      console.log(`[NMF] Top recommendation: ${topFoodName} with rating ${topRecommendationsNMF[0].predictedRating.toFixed(2)}`);
     }
 
     // Map recommendations to actual food items
-    const recommendations = await Promise.all(
-      topRecommendations.map(async (rec) => {
+    const nmfRecommendations = await Promise.all(
+      topRecommendationsNMF.map(async (rec) => {
         const foodId = reverseItemMap[rec.itemIndex];
         // Try to get food data from database or static list
         let food = await getFoodData(foodId, allFoods);
@@ -536,20 +595,59 @@ export const getMyRecommendations = async (req, res) => {
       })
     );
     
-    console.log(`Mapped ${recommendations.length} recommendations (before filtering)`);
+    console.log(`Mapped ${nmfRecommendations.length} NMF recommendations (before filtering)`);
     
     // Only filter out if food is completely invalid
-    const validRecommendations = recommendations.filter((rec) => rec.food && rec.food._id);
-    console.log(`Valid recommendations after filtering: ${validRecommendations.length}`);
+    const validNmfRecommendations = nmfRecommendations.filter((rec) => rec.food && rec.food._id);
+    console.log(`Valid NMF recommendations after filtering: ${validNmfRecommendations.length}`);
     
-    if (validRecommendations.length > 0) {
-      console.log(`Final Recommendations for ${userName}: ${validRecommendations.map(r => `${r.food.name} (${r.predictedRating.toFixed(2)})`).join(', ')}`);
+    if (validNmfRecommendations.length > 0) {
+      console.log(`[NMF] Final Recommendations for ${userName}: ${validNmfRecommendations.map(r => `${r.food.name} (${r.predictedRating.toFixed(2)})`).join(', ')}`);
+    }
+
+    // === Build KNN recommendations mapped to food objects (reuse same mapping logic) ===
+    const knnRecommendations = await Promise.all(
+      topRecommendationsKNN.map(async (rec) => {
+        const foodId = reverseItemMap[rec.itemIndex];
+        let food = await getFoodData(foodId, allFoods);
+        
+        if (!food) {
+          const foodName = await getFoodName(foodId, allFoods);
+          console.log(`[kNN] Food "${foodName}" (ID: ${foodId}) not found in database, using placeholder data`);
+          food = {
+            _id: foodId,
+            name: foodName,
+            price: 100,
+            description: "Recommended food",
+            image: "",
+            category: "Unknown"
+          };
+        } else {
+          console.log(`[kNN] Food "${food.name}" (ID: ${foodId}) found successfully`);
+        }
+        
+        return {
+          food: food,
+          predictedRating: parseFloat(rec.predictedRating.toFixed(2)),
+          itemIndex: rec.itemIndex
+        };
+      })
+    );
+
+    const validKnnRecommendations = knnRecommendations.filter((rec) => rec.food && rec.food._id);
+    console.log(`Valid kNN recommendations after filtering: ${validKnnRecommendations.length}`);
+
+    if (validKnnRecommendations.length > 0) {
+      console.log(`[kNN] Final Recommendations for ${userName}: ${validKnnRecommendations.map(r => `${r.food.name} (${r.predictedRating.toFixed(2)})`).join(', ')}`);
     }
 
     res.json({
       success: true,
-      message: `Generated ${validRecommendations.length} recommendations for you`,
-      data: validRecommendations,
+      message: `Generated ${validNmfRecommendations.length} NMF and ${validKnnRecommendations.length} kNN recommendations for you`,
+      data: {
+        nmf: validNmfRecommendations,
+        knn: validKnnRecommendations
+      },
     });
   } catch (error) {
     console.error("Error generating recommendations:", error);

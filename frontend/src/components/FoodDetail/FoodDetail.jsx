@@ -478,7 +478,7 @@ const FoodDetail = () => {
 
           {/* Recommendations Sidebar */}
           <div className="recommendations-sidebar">
-            <Recommendations topN={5} />
+            <Recommendations topN={3} />
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import FoodItem from '../FoodItem/FoodItem'
 import { food_list as static_food_list } from '../../assets/assets'
 import './Recommendations.css'
 
-const Recommendations = ({ topN = 5 }) => {
+const Recommendations = ({ topN = 3 }) => {
   const [nmfRecommendations, setNmfRecommendations] = useState([])
   const [knnRecommendations, setKnnRecommendations] = useState([])
   const [loading, setLoading] = useState(true)

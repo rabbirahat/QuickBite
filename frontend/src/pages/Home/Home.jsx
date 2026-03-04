@@ -33,7 +33,7 @@ const Home = () => {
           <FoodDisplay category={category}/>
         </div>
         <div className="home-sidebar-section">
-          <Recommendations topN={5} />
+          <Recommendations topN={3} />
         </div>
       </div>
     </div>

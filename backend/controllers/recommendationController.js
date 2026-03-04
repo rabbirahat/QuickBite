@@ -154,7 +154,8 @@ function buildRatingMatrix(reviews, users, foods) {
 export const getUserRecommendations = async (req, res) => {
   try {
     const { userId } = req.params;
-    const topN = parseInt(req.query.topN) || 5; // Number of recommendations
+    // Number of recommendations to generate (default: 3 to match frontend)
+    const topN = parseInt(req.query.topN) || 3;
 
     // Validate user ID
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -423,7 +424,8 @@ export const getUserRecommendations = async (req, res) => {
 export const getMyRecommendations = async (req, res) => {
   try {
     const userId = req.user._id.toString();
-    const topN = parseInt(req.query.topN) || 5;
+    // Number of recommendations to generate (default: 3 to match frontend)
+    const topN = parseInt(req.query.topN) || 3;
 
     // Fetch all reviews, users, and foods
     const reviews = await reviewModel.find({}).lean();
